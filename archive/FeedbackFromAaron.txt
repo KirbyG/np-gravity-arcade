@@ -1,0 +1,10 @@
+Excellent work.
+
+It is possible that this result, by itself, could get accepted at a computer science conference or published at a journal. If you added to the result in some way, then the chances would increase. I'll mention a couple of points related to this possible pursuit below.
+
+- One of the first broad papers on video game complexity is called "Gaming is a Hard Job, but someone has to do it!". Another such paper is "Classic Nintendo Games are (Computationally) Hard" (links below). My guess is that some of the other mechanisms in Popils (e.g. warp doors) would be covered by one of the "metatheorems" in these papers. When preparing academic papers, it is important to survey the area a little bit, and make connections to previous work.
+
+https://arxiv.org/abs/1201.4995
+https://arxiv.org/abs/1203.1895
+
+- The gravity mechanism is somewhat unique to Popils, and so it was particularly nice that you used this mechanism in your result. Papers on the computational complexity of (video) games often explore the complexity of several games that are connected by a similar mechanism. For example, box pushing/pulling was one of the first mechanisms to be explored. In your case it would be natural to consider puzzles that use gravity. A slightly obscure game that also uses this mechanism (and very few others) is Megalit for the Game Boy. If you were able to establish that this game is also NP-complete, then your chances of getting the combined result published would go up dramatically, since the common theme of gravity-based puzzles would be appealing to researchers. If you would like to borrow a copy of the game and a Game Boy to play it on, then let me know.
