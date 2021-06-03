@@ -1,6 +1,6 @@
 #TODO refactor kirby's bad code
 import sys
-#sys.path.append('/Users/kirby/anaconda3/lib/python3.7/site-packages/')
+sys.path.append('/usr/local/lib/python3.9/site-packages')
 import pygame
 import random
 pygame.init()
@@ -19,70 +19,67 @@ support = (255, 255, 255) #white
 background = (0, 0, 0) #black
 clock = pygame.time.Clock()
 done = False
-###setup
-rows = int(size[ROW] / BLOCK)
-cols = int(size[COL] / BLOCK)
-colors = [player, ladder, hard, soft, princess, support]
-#state = [[colors[random.randint(0, 5)] for col in range(cols)] for row in  range(rows)]
-state = [[support for col in range(cols)] for row in  range(rows)]
-state[0] = [hard for col in range(cols)]
-state[rows - 1] = [hard for col in range(cols)]
-state[rows - 2][1] = player
-state[rows - 3][1] = soft
-state[rows - 3][2] = hard
-state[rows - 3][3] = soft
-state[rows - 3][4] = hard
-state[rows - 3][5] = soft
-state[rows - 3][6] = hard
-state[rows - 3][7] = soft
-state[rows - 3][8] = hard
-state[rows - 3][9] = soft
-state[rows - 3][10] = hard
-state[rows - 3][11] = soft
-state[rows - 3][12] = hard
-state[rows - 3][13] = soft
-state[rows - 2][14] = ladder
-state[rows - 3][14] = ladder
-state[rows - 4][14] = ladder
-state[rows - 5][14] = ladder
-state[rows - 6][14] = princess
-state[rows - 4][13] = hard
-state[rows - 4][12] = hard
-state[rows - 4][11] = ladder
-state[rows - 4][10] = ladder
 
 
-def place_gadget(variable_states, coords): #TODO 3sat to game state conversion function
-    pass
-for row in range(rows):
-    state[row][0] = hard
-    state[row][cols - 1] = hard
+UNUSED = 0
+NEGATED = -1
+NONNEGATED = 1
+sub_gadgets = [[ladder, ladder, support, ladder], [ladder, support, ladder, support], [support, ladder, ladder, support]]
+def place_sub_gadget(code, bottom_row, col):
+    for i in range(4):
+        state[bottom_row + i][col] = sub_gadgets[code + 1][i]
+def place_gadget(variable_states, bottom_row): #TODO 3sat to game state conversion function
+    state[bottom_row][cols - 2] = ladder
+    state[bottom_row + 3][cols - 2] = ladder
+    state[bottom_row + 4][cols - 2] = ladder
+    state[bottom_row + 5][cols - 2] = ladder
+    for i in range(2, cols - 2, 2):
+        state[bottom_row + 1][i] = support
+        state[bottom_row + 3][i] = support
+        state[bottom_row + 4][i] = support
+    for i in range(len(variable_states)):
+        place_sub_gadget(variable_states[i], bottom_row + 1, 2 * i + 1)
 #set player position
-redRow = rows - 2
-redCol = 1
+
 hidden = support
 #TODO multiple 3sat instances stored in files
 #get 3sat input or use default
 three_sat = input('enter 3sat instance in the format: -3 -2 4 2 7 -4, or enter a filename:')
-test_input = '!3 !2 4 2 7 !4'
-print(str.split(test_input))
+array_form = [int(el) for el in str.split(three_sat)]
 
-test_input = '-3 -2 4 2 7 -4'
-array_form = str.split(test_input)
-from enum import Enum
-class state (Enum):
-    UNUSED = 0
-    NEGATED = -1
-    NONNEGATED = 1
-coords = [0, 0]
-for i in range(len(array_form) / 3):
+row_pointer = 3
+tuples = int(len(array_form) / 3)
+num_vars = max([abs(el) for el in array_form])
+###setup
+rows = 6 * (tuples + 1)
+cols = 3 + 2 * num_vars
+BLOCK = min(size[ROW] / rows, size[COL] / cols)
+colors = [player, ladder, hard, soft, princess, support]
+state = [[hard for col in range(cols)] for row in  range(rows)]
+
+#bottom 3 rows
+redRow = 1
+redCol = 1
+state[1][1] = player
+for i in range(2, cols - 2):
+    state[1][i] = support
+state[1][cols - 2] = ladder
+for i in range(1, cols - 3, 2):
+    state[2][i] = soft
+state[2][cols - 2] = ladder
+#top 3 rows
+state[rows - 2][cols - 2] = princess
+state[rows - 3][cols - 2] = soft
+#gadgets
+print(array_form)
+for i in range(tuples):
     index = 3 * i
-    variable_states = [state.UNUSED for i in range(max(abs(array_form)))]
+    variable_states = [UNUSED for k in range(num_vars)]
     for j in range(3):
-        temp = array_form[i + j]
-        variable_states[abs(temp) - 1] = abs(temp) / temp
-    place_gadget(variable_states, coords)
-    coords[1] = coords[1] + 6
+        temp = array_form[index + j]
+        variable_states[abs(temp) - 1] = int(abs(temp) / temp)
+    place_gadget(variable_states, row_pointer)
+    row_pointer = row_pointer + 6
     
     
 ###setup
@@ -103,24 +100,24 @@ while (done == False): #TODO block breaking logic
                 state[redRow][redCol] = player
             elif event.key == pygame.K_UP and state[redRow - 1][redCol] != hard and hidden == ladder:
                 state[redRow][redCol] = hidden
-                redRow = redRow - 1
+                redRow = redRow + 1
                 hidden = state[redRow][redCol]
                 state[redRow][redCol] = player
             elif event.key == pygame.K_DOWN and state[redRow + 1][redCol] != hard:
                 state[redRow][redCol] = hidden
-                redRow = redRow + 1
+                redRow = redRow - 1
                 hidden = state[redRow][redCol]
                 state[redRow][redCol] = player
-        while (state[redRow + 1][redCol] == support):
+        '''while (state[redRow + 1][redCol] == support):
             state[redRow][redCol] = hidden
             redRow = redRow + 1
             hidden = state[redRow][redCol]
-            state[redRow][redCol] = player
+            state[redRow][redCol] = player'''
     screen.fill(background)
     #render
     for row in range(rows):
         for col in  range(cols):
-            pygame.draw.rect(screen, state[row][col], [col * BLOCK + 1, row * BLOCK + 1, BLOCK - 1, BLOCK - 1])
+            pygame.draw.rect(screen, state[rows - row - 1][col], [col * BLOCK + 1, row * BLOCK + 1, BLOCK - 1, BLOCK - 1])
     #render
     pygame.display.flip()
     clock.tick(20);
