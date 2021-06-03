@@ -12,10 +12,12 @@ pygame.init()
 pygame.display.set_caption('Test')
 
 clock = pygame.time.Clock()
-size = [801, 601]
+size = [500, 1000]
 block_size = 50  # block size = 50px TODO dynamic block sizing
 screen = pygame.display.set_mode(size)
 done = False
+
+
 
 
 UNUSED = 0
@@ -27,6 +29,7 @@ def place_sub_gadget(code, bottom_row, col):
         state[bottom_row + i][col] = sub_gadgets[code + 1][i]
 def place_gadget(variable_states, bottom_row): #TODO 3sat to game state conversion function
     state[bottom_row][cols - 2] = LADDER
+    state[bottom_row + 1][cols - 2] = SUPPORT
     state[bottom_row + 3][cols - 2] = LADDER
     state[bottom_row + 4][cols - 2] = LADDER
     state[bottom_row + 5][cols - 2] = LADDER
@@ -41,7 +44,8 @@ def place_gadget(variable_states, bottom_row): #TODO 3sat to game state conversi
 hidden = SUPPORT
 #TODO multiple 3sat instances stored in files
 #get 3sat input or use default
-three_sat = input('enter 3sat instance in the format: -3 -2 4 2 7 -4, or enter a filename:')
+#three_sat = input('enter 3sat instance in the format: -3 -2 4 2 7 -4, or enter a filename:')
+three_sat = '9 7 2 6 4 1 8 7 3 -2 -4 -9 -7 -6 -1 -8 -3 -5 5 10 -10'
 array_form = [int(el) for el in str.split(three_sat)]
 
 row_pointer = 3
@@ -78,7 +82,6 @@ for i in range(tuples):
     place_gadget(variable_states, row_pointer)
     row_pointer = row_pointer + 6
 
-
 # setup
 while (done == False):  # TODO block breaking logic
     for event in pygame.event.get():
@@ -95,25 +98,24 @@ while (done == False):  # TODO block breaking logic
                 redCol = redCol + 1
                 hidden = state[redRow][redCol]
                 state[redRow][redCol] = PLAYER
-            elif event.key == pygame.K_UP and state[redRow - 1][redCol] != HARD and hidden == LADDER:
-                state[redRow][redCol] = hidden
-                redRow = redRow + 1
-                hidden = state[redRow][redCol]
-                state[redRow][redCol] = PLAYER
-            elif event.key == pygame.K_DOWN and state[redRow + 1][redCol] != HARD:
+            elif event.key == pygame.K_UP:
+                if  state[redRow + 1][redCol] == SUPPORT or state[redRow + 1][redCol] == LADDER and hidden == LADDER:
+                    state[redRow][redCol] = hidden
+                    redRow = redRow + 1
+                    hidden = state[redRow][redCol]
+                    state[redRow][redCol] = PLAYER
+                elif state[redRow +1][redCol] == SOFT:
+                    for falling_row in range(redRow + 1, rows - 1):
+                        state[falling_row][redCol] = state[falling_row + 1][redCol]
+                    state[rows - 1][redCol] = HARD
+            elif event.key == pygame.K_DOWN and state[redRow - 1][redCol] != HARD:
                 state[redRow][redCol] = hidden
                 redRow = redRow - 1
                 hidden = state[redRow][redCol]
                 state[redRow][redCol] = PLAYER
-        '''while (state[redRow + 1][redCol] == SUPPORT):
+        while (state[redRow - 1][redCol] == SUPPORT and hidden == SUPPORT):
             state[redRow][redCol] = hidden
-            redRow = redRow + 1
-            hidden = state[redRow][redCol]
-            state[redRow][redCol] = PLAYER
-'''
-        while (state[redRow + 1][redCol] == SUPPORT):
-            state[redRow][redCol] = hidden
-            redRow = redRow + 1
+            redRow = redRow - 1
             hidden = state[redRow][redCol]
             state[redRow][redCol] = PLAYER
     screen.fill(BACKGROUND)
