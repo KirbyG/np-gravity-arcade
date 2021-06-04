@@ -1,4 +1,3 @@
-
 import pygame
 import argparse
 
@@ -13,12 +12,13 @@ input.add_argument('-f', '--filename',
                    help="file containing an instance of 3SAT")
 args = parser.parse_args()
 
+# Currently these all just blindly accept the input they're given
+# TODO Could make input more robust against typos
 if args.instance:
     three_sat = args.instance
 elif args.filename:
     with open(args.filename) as file:
-        # TODO read in instance from file
-        pass
+        three_sat = file.readline()
 else:
     three_sat = DEFAULT_3SAT
 
@@ -96,7 +96,7 @@ for i in range(tuples):
 
 # setup
 done = False
-while (done == False):  # TODO block breaking logic
+while done is False:  # TODO block breaking logic
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True

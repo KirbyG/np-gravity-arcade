@@ -1,4 +1,4 @@
-from enum import Enum
+# from enum import Enum
 
 # Colors of blocks
 # TODO: Make Block class with label/color attributes?
@@ -27,7 +27,7 @@ GADGET_HEIGHT = 4  # in block units
 DEFAULT_3SAT = '9 7 2 6 4 1 8 7 3 -2 -4 -9 -7 -6 -1 -8 -3 -5 5 10 -10'
 
 
-class VariableState(Enum):
-    UNUSED = 0
-    NEGATED = -1
-    NONNEGATED = 1
+# class VariableState(Enum):
+UNUSED = 0
+NEGATED = -1
+NONNEGATED = 1
