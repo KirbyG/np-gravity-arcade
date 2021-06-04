@@ -6,7 +6,7 @@ from popils_constants import *
 # read in 3SAT problem
 parser = argparse.ArgumentParser()
 input = parser.add_mutually_exclusive_group()
-input.add_argument('-i', '--instance', action='extend',
+input.add_argument('-i', '--instance', nargs='+', type=str,
                    help="3SAT instance: (default = " + DEFAULT_3SAT + ")")
 input.add_argument('-f', '--filename',
                    help="file containing an instance of 3SAT")
@@ -15,7 +15,7 @@ args = parser.parse_args()
 # Currently these all just blindly accept the input they're given
 # TODO Could make input more robust against typos
 if args.instance:
-    three_sat = args.instance
+    three_sat = " ".join(args.instance)
 elif args.filename:
     with open(args.filename) as file:
         three_sat = file.readline()
