@@ -36,7 +36,7 @@ screen = pygame.display.set_mode(window_size)
 
 
 def place_sub_gadget(code, bottom_row, col):
-    for i in range(GADGET_HEIGHT):
+    for i in range(SUB_GADGET_HEIGHT):
         state[bottom_row + i][col] = SUB_GADGETS[code + 1][i]
 
 
