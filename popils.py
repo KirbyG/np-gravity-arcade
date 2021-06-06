@@ -3,6 +3,13 @@ import argparse
 
 from popils_constants import *
 
+
+# ----- Function definitions -----
+
+
+# ----- Main program begins here -----
+print()  # Give separation from pygame message
+
 # read in 3SAT problem
 parser = argparse.ArgumentParser()
 input = parser.add_mutually_exclusive_group()
@@ -14,6 +21,8 @@ args = parser.parse_args()
 
 # Currently these all just blindly accept the input they're given
 # TODO Could make input more robust against typos
+# TODO multiple 3sat instances stored in files
+# TODO require all variable values in range to be used (e.g. prohibit only x1, x2, x7)
 if args.instance:
     three_sat = " ".join(args.instance)
 elif args.filename:
@@ -21,6 +30,16 @@ elif args.filename:
         three_sat = file.readline()
 else:
     three_sat = DEFAULT_3SAT
+
+array_form = [int(el) for el in str.split(three_sat)]
+truncation_needed = False
+while len(array_form) % 3 != 0:
+    array_form = array_form[:-1]
+    truncation_needed = True
+if truncation_needed:
+    print("WARNING: 3SAT requires tuples of exactly size 3. Input has been truncated appropriately.")
+print("3SAT instance: " + str(array_form))
+# TODO print pretty version of 3SAT with proper formatting & symbols
 
 # initialize all pygame submodules
 pygame.init()
@@ -68,7 +87,7 @@ for i in range(tuples):
     place_gadget(variable_states, row_pointer)
     row_pointer = row_pointer + 6
 
-# setup
+# game loop
 done = False
 while done is False:  # TODO block breaking logic
     for event in pygame.event.get():
