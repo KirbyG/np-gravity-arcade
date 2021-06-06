@@ -30,47 +30,21 @@ pygame.display.set_caption('Test')
 
 clock = pygame.time.Clock()
 window_size = [WINDOW_WIDTH, WINDOW_HEIGHT]
-block_size = 50  # block size = 50px TODO dynamic block sizing
+block_size = 50  # in px TODO dynamic block sizing
+
 # initialize drawing surface
 screen = pygame.display.set_mode(window_size)
 
+# set up runtime constants
+NUM_TUPLES = (len(array_form) / 3)
+NUM_VARS = max([abs(el) for el in array_form])
+ROWS = 6 * (NUM_TUPLES + 1)
+COLS = 3 + 2 * NUM_VARS
+BLOCK = min(window_size[1] / ROWS, window_size[0] / COLS)
 
-def place_sub_gadget(code, bottom_row, col):
-    for i in range(SUB_GADGET_HEIGHT):
-        state[bottom_row + i][col] = SUB_GADGETS[code + 1][i]
-
-
-# TODO 3sat to game state conversion function
-def place_gadget(variable_states, bottom_row):
-    state[bottom_row][cols - 2] = LADDER
-    state[bottom_row + 1][cols - 2] = SUPPORT
-    state[bottom_row + 3][cols - 2] = LADDER
-    state[bottom_row + 4][cols - 2] = LADDER
-    state[bottom_row + 5][cols - 2] = LADDER
-    for i in range(2, cols - 2, 2):
-        state[bottom_row + 1][i] = SUPPORT
-        state[bottom_row + 3][i] = SUPPORT
-        state[bottom_row + 4][i] = SUPPORT
-    for i in range(len(variable_states)):
-        place_sub_gadget(variable_states[i], bottom_row + 1, 2 * i + 1)
-
-
-# set player position
-hidden = SUPPORT
-
-# TODO multiple 3sat instances stored in files
-array_form = [int(el) for el in str.split(three_sat)]
-
+# set up variables
 row_pointer = 3
-tuples = int(len(array_form) / 3)
-num_vars = max([abs(el) for el in array_form])
-# setup
-rows = 6 * (tuples + 1)
-cols = 3 + 2 * num_vars
-BLOCK = min(window_size[1] / rows, window_size[0] / cols)
-state = [[HARD for col in range(cols)] for row in range(rows)]
-
-# bottom 3 rows
+hidden = SUPPORT  # tile obscured by player position
 redRow = 1
 redCol = 1
 state[1][1] = PLAYER
