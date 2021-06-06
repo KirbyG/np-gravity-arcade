@@ -5,6 +5,72 @@ from popils_constants import *
 
 
 # ----- Function definitions -----
+# TODO 3sat to game state conversion function
+def initSpecialAreas():
+    playerRow = playerCol = 1
+    assignmentRow = 2
+    # initially set entire level to indestructible blocks
+    # need 'for' because Python lists are "shallow"
+    block_type = [[HARD] * COLS for row in range(ROWS)]
+
+    # Starting zone
+    block_type[playerRow][playerCol] = PLAYER
+    for i in range(2, COLS - 2):
+        block_type[playerRow][i] = SUPPORT
+    block_type[playerRow][COLS - 2] = LADDER
+    for i in range(1, COLS - 3, 2):
+        block_type[assignmentRow][i] = SOFT
+    block_type[assignmentRow][COLS - 2] = LADDER
+
+    # Ending zone
+    block_type[ROWS - 2][COLS - 2] = PRINCESS
+    block_type[ROWS - 3][COLS - 2] = SOFT  # Stop princess from walking
+
+    # send back partially-built level
+    return block_type
+
+
+def initSatisfiabilityClauses():
+    global row_pointer
+    VARS_PER_TUPLE = 3  # Definition of 3SAT
+
+    for i in range(NUM_TUPLES):
+        index = VARS_PER_TUPLE * i
+        variable_states = [UNUSED] * NUM_VARS
+
+        # Determine which variables were used in which clauses
+        for j in range(VARS_PER_TUPLE):
+            temp = array_form[index + j]
+            # Map to -1, 0, or 1 (Negated, Absent, Present)
+            variable_states[abs(temp) - 1] = int(abs(temp) / temp)
+        place_gadget(variable_states, row_pointer)
+        row_pointer += GADGET_HEIGHT
+
+
+def place_gadget(variable_states, bottom_row):
+    # Create transition to next zone
+    state[bottom_row][COLS - 2] = LADDER
+    state[bottom_row + 1][COLS - 2] = SUPPORT
+    # state[bottom_row + 2][COLS - 2] is already HARD
+    state[bottom_row + 3][COLS - 2] = LADDER
+    state[bottom_row + 4][COLS - 2] = LADDER
+    state[bottom_row + 5][COLS - 2] = LADDER
+
+    # Carve out walkable area
+    for i in range(2, COLS - 2, 2):
+        state[bottom_row + 1][i] = SUPPORT
+        state[bottom_row + 3][i] = SUPPORT
+        state[bottom_row + 4][i] = SUPPORT
+
+    # Place ladders according to gadget structure
+    for i in range(len(variable_states)):
+        place_sub_gadget(variable_states[i], bottom_row + 1, 2 * i + 1)
+
+
+# Clone sub-gadget structure
+def place_sub_gadget(code, bottom_row, col):
+    for i in range(SUB_GADGET_HEIGHT):
+        state[bottom_row + i][col] = SUB_GADGETS[code + 1][i]
 
 
 # ----- Main program begins here -----
@@ -66,26 +132,13 @@ row_pointer = 3
 hidden = SUPPORT  # tile obscured by player position
 redRow = 1
 redCol = 1
-state[1][1] = PLAYER
-for i in range(2, cols - 2):
-    state[1][i] = SUPPORT
-state[1][cols - 2] = LADDER
-for i in range(1, cols - 3, 2):
-    state[2][i] = SOFT
-state[2][cols - 2] = LADDER
-# top 3 rows
-state[rows - 2][cols - 2] = PRINCESS
-state[rows - 3][cols - 2] = SOFT
-# gadgets
-print(array_form)
-for i in range(tuples):
-    index = 3 * i
-    variable_states = [UNUSED for k in range(num_vars)]
-    for j in range(3):
-        temp = array_form[index + j]
-        variable_states[abs(temp) - 1] = int(abs(temp) / temp)
-    place_gadget(variable_states, row_pointer)
-    row_pointer = row_pointer + 6
+
+# Create bottom 3 rows & top 2 rows of puzzle
+# Remaining area, including frame, is made of HARD blocks
+state = initSpecialAreas()
+
+# Place gadgets to construct puzzle
+initSatisfiabilityClauses()
 
 # game loop
 done = False
