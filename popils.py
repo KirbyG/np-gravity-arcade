@@ -9,8 +9,8 @@ from popils_constants import *
 def initSpecialAreas():
     playerRow = playerCol = 1
     assignmentRow = 2
-    # initially set entire level to indestructible blocks
-    # need 'for' because Python lists are "shallow"
+    # Initially set entire level to indestructible blocks
+    # Need 'for' in secodn dimension because Python lists are "shallow"
     block_type = [[HARD] * COLS for row in range(ROWS)]
 
     # Starting zone
@@ -26,7 +26,7 @@ def initSpecialAreas():
     block_type[ROWS - 2][COLS - 2] = PRINCESS
     block_type[ROWS - 3][COLS - 2] = SOFT  # Stop princess from walking
 
-    # send back partially-built level
+    # Send back partially-built level
     return block_type
 
 
@@ -76,17 +76,38 @@ def place_sub_gadget(code, bottom_row, col):
 def renderDisplay():
     screen.fill(BACKGROUND)
     for row in range(ROWS):
+        # Create a rect for each block according to its saved state/color
         for col in range(COLS):
-            # TODO something more pythonic
             pygame.draw.rect(screen, state[ROWS - row - 1][col],
                              [col * BLOCK + 1, row * BLOCK + 1, BLOCK - 1, BLOCK - 1])
     pygame.display.flip()  # Update visual surface (i.e. the entire display)
 
 
-# ----- Main program begins here -----
+# Moves player in direction of first True parameter, if any
+def movePlayer(up, down, left, right):
+    global redRow, redCol, hidden
+
+    # Restore block type that player obscured
+    state[redRow][redCol] = hidden
+
+    # Update coordinates
+    if up:
+        redRow += 1
+    elif down:
+        redRow -= 1
+    elif right:
+        redCol += 1
+    elif left:
+        redCol -= 1
+
+    # Set new player position
+    hidden = state[redRow][redCol]
+    state[redRow][redCol] = PLAYER
+
+    # ----- Main program begins here -----
 print()  # Give separation from pygame message
 
-# read in 3SAT problem
+# Read in 3SAT problem
 parser = argparse.ArgumentParser()
 input = parser.add_mutually_exclusive_group()
 input.add_argument('-i', '--instance', nargs='+', type=str,
@@ -115,29 +136,29 @@ while len(array_form) % 3 != 0:
 if truncation_needed:
     print("WARNING: 3SAT requires tuples of exactly size 3. Input has been truncated appropriately.")
 print("3SAT instance: " + str(array_form))
-# TODO print pretty version of 3SAT with proper formatting & symbols
+# TODO print pretty version of 3SAT in conjunctive normal form
 
-# initialize all pygame submodules
+# Initialize all pygame submodules
 pygame.init()
 
-# window title
+# Set window title
 pygame.display.set_caption('Test')
 
 clock = pygame.time.Clock()
 window_size = [WINDOW_WIDTH, WINDOW_HEIGHT]
 block_size = 50  # in px TODO dynamic block sizing
 
-# initialize drawing surface
+# Initialize drawing surface
 screen = pygame.display.set_mode(window_size)
 
-# set up runtime constants
+# Set up runtime constants
 NUM_TUPLES = int(len(array_form) / 3)
 NUM_VARS = max([abs(el) for el in array_form])
 ROWS = 6 * (NUM_TUPLES + 1)
 COLS = 3 + 2 * NUM_VARS
 BLOCK = min(WINDOW_HEIGHT / ROWS, WINDOW_WIDTH / COLS)
 
-# set up variables
+# Set up variables
 row_pointer = 3
 hidden = SUPPORT  # tile obscured by player position
 redRow = 1
@@ -150,43 +171,30 @@ state = initSpecialAreas()
 # Place gadgets to construct puzzle
 initSatisfiabilityClauses()
 
-# game loop
+# Game loop
 done = False
 while not done:  # TODO block breaking logic
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
-        elif event.type == pygame.KEYUP:  # TODO functions!
-            if event.key == pygame.K_LEFT and state[redRow][redCol - 1] != HARD:
-                state[redRow][redCol] = hidden
-                redCol -= 1
-                hidden = state[redRow][redCol]
-                state[redRow][redCol] = PLAYER
-            elif event.key == pygame.K_RIGHT and state[redRow][redCol + 1] != HARD:
-                state[redRow][redCol] = hidden
-                redCol += 1
-                hidden = state[redRow][redCol]
-                state[redRow][redCol] = PLAYER
-            elif event.key == pygame.K_UP:
+            break
+        elif event.type == pygame.KEYDOWN:
+            if event.key == pygame.K_UP:
                 if state[redRow + 1][redCol] == SUPPORT or state[redRow + 1][redCol] == LADDER and hidden == LADDER:
-                    state[redRow][redCol] = hidden
-                    redRow += 1
-                    hidden = state[redRow][redCol]
-                    state[redRow][redCol] = PLAYER
+                    movePlayer(True, False, False, False)
                 elif state[redRow + 1][redCol] == SOFT:
                     for falling_row in range(redRow + 1, ROWS - 1):
                         state[falling_row][redCol] = state[falling_row + 1][redCol]
                     state[ROWS - 1][redCol] = HARD
             elif event.key == pygame.K_DOWN and state[redRow - 1][redCol] != HARD:
-                state[redRow][redCol] = hidden
-                redRow -= 1
-                hidden = state[redRow][redCol]
-                state[redRow][redCol] = PLAYER
+                movePlayer(False, True, False, False)
+            elif event.key == pygame.K_LEFT and state[redRow][redCol - 1] != HARD:
+                movePlayer(False, False, True, False)
+            elif event.key == pygame.K_RIGHT and state[redRow][redCol + 1] != HARD:
+                movePlayer(False, False, False, True)
+        # Make player fall if gravity says they should
         while (state[redRow - 1][redCol] == SUPPORT and hidden == SUPPORT):
-            state[redRow][redCol] = hidden
-            redRow -= 1
-            hidden = state[redRow][redCol]
-            state[redRow][redCol] = PLAYER
+            movePlayer(False, True, False, False)
 
     renderDisplay()
     clock.tick(30)  # Limit game to 30 FPS
