@@ -73,6 +73,16 @@ def place_sub_gadget(code, bottom_row, col):
         state[bottom_row + i][col] = SUB_GADGETS[code + 1][i]
 
 
+def renderDisplay():
+    screen.fill(BACKGROUND)
+    for row in range(ROWS):
+        for col in range(COLS):
+            # TODO something more pythonic
+            pygame.draw.rect(screen, state[ROWS - row - 1][col],
+                             [col * BLOCK + 1, row * BLOCK + 1, BLOCK - 1, BLOCK - 1])
+    pygame.display.flip()  # Update visual surface (i.e. the entire display)
+
+
 # ----- Main program begins here -----
 print()  # Give separation from pygame message
 
@@ -125,7 +135,7 @@ NUM_TUPLES = int(len(array_form) / 3)
 NUM_VARS = max([abs(el) for el in array_form])
 ROWS = 6 * (NUM_TUPLES + 1)
 COLS = 3 + 2 * NUM_VARS
-BLOCK = min(window_size[1] / ROWS, window_size[0] / COLS)
+BLOCK = min(WINDOW_HEIGHT / ROWS, WINDOW_WIDTH / COLS)
 
 # set up variables
 row_pointer = 3
@@ -177,12 +187,6 @@ while not done:  # TODO block breaking logic
             redRow -= 1
             hidden = state[redRow][redCol]
             state[redRow][redCol] = PLAYER
-    screen.fill(BACKGROUND)
-    # render
-    for row in range(ROWS):
-        for col in range(COLS):
-            pygame.draw.rect(screen, state[ROWS - row - 1][col],
-                             [col * BLOCK + 1, row * BLOCK + 1, BLOCK - 1, BLOCK - 1])
-    pygame.display.flip()
-    clock.tick(20)
-pygame.quit()
+
+    renderDisplay()
+    clock.tick(30)  # Limit game to 30 FPS
