@@ -121,7 +121,7 @@ block_size = 50  # in px TODO dynamic block sizing
 screen = pygame.display.set_mode(window_size)
 
 # set up runtime constants
-NUM_TUPLES = (len(array_form) / 3)
+NUM_TUPLES = int(len(array_form) / 3)
 NUM_VARS = max([abs(el) for el in array_form])
 ROWS = 6 * (NUM_TUPLES + 1)
 COLS = 3 + 2 * NUM_VARS
@@ -142,46 +142,46 @@ initSatisfiabilityClauses()
 
 # game loop
 done = False
-while done is False:  # TODO block breaking logic
+while not done:  # TODO block breaking logic
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
         elif event.type == pygame.KEYUP:  # TODO functions!
             if event.key == pygame.K_LEFT and state[redRow][redCol - 1] != HARD:
                 state[redRow][redCol] = hidden
-                redCol = redCol - 1
+                redCol -= 1
                 hidden = state[redRow][redCol]
                 state[redRow][redCol] = PLAYER
             elif event.key == pygame.K_RIGHT and state[redRow][redCol + 1] != HARD:
                 state[redRow][redCol] = hidden
-                redCol = redCol + 1
+                redCol += 1
                 hidden = state[redRow][redCol]
                 state[redRow][redCol] = PLAYER
             elif event.key == pygame.K_UP:
                 if state[redRow + 1][redCol] == SUPPORT or state[redRow + 1][redCol] == LADDER and hidden == LADDER:
                     state[redRow][redCol] = hidden
-                    redRow = redRow + 1
+                    redRow += 1
                     hidden = state[redRow][redCol]
                     state[redRow][redCol] = PLAYER
                 elif state[redRow + 1][redCol] == SOFT:
-                    for falling_row in range(redRow + 1, rows - 1):
+                    for falling_row in range(redRow + 1, ROWS - 1):
                         state[falling_row][redCol] = state[falling_row + 1][redCol]
-                    state[rows - 1][redCol] = HARD
+                    state[ROWS - 1][redCol] = HARD
             elif event.key == pygame.K_DOWN and state[redRow - 1][redCol] != HARD:
                 state[redRow][redCol] = hidden
-                redRow = redRow - 1
+                redRow -= 1
                 hidden = state[redRow][redCol]
                 state[redRow][redCol] = PLAYER
         while (state[redRow - 1][redCol] == SUPPORT and hidden == SUPPORT):
             state[redRow][redCol] = hidden
-            redRow = redRow - 1
+            redRow -= 1
             hidden = state[redRow][redCol]
             state[redRow][redCol] = PLAYER
     screen.fill(BACKGROUND)
     # render
-    for row in range(rows):
-        for col in range(cols):
-            pygame.draw.rect(screen, state[rows - row - 1][col],
+    for row in range(ROWS):
+        for col in range(COLS):
+            pygame.draw.rect(screen, state[ROWS - row - 1][col],
                              [col * BLOCK + 1, row * BLOCK + 1, BLOCK - 1, BLOCK - 1])
     pygame.display.flip()
     clock.tick(20)
