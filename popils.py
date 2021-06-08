@@ -5,7 +5,6 @@ from popils_constants import *
 
 
 # ----- Function definitions -----
-# TODO 3sat to game state conversion function
 def initSpecialAreas():
     playerRow = playerCol = 1
     assignmentRow = 2
@@ -118,7 +117,7 @@ def draw(min_row, max_row, min_col, max_col):
     for row in range(min_row, max_row + 1):
         for col in range(min_col, max_col + 1):
             pygame.draw.rect(screen, state[row][col],
-                             [col * BLOCK + 1, (ROWS - row - 1) * BLOCK + 1, BLOCK - 1, BLOCK - 1])
+                             [col * BLOCK_DIM + 1, (ROWS - row - 1) * BLOCK_DIM + 1, BLOCK_DIM - 1, BLOCK_DIM - 1])
     pygame.display.update()
 
 
@@ -128,7 +127,7 @@ def renderDisplay():
         # Create a rect for each block according to its saved state/color
         for col in range(COLS):
             pygame.draw.rect(screen, state[ROWS - row - 1][col],
-                             [col * BLOCK + 1, row * BLOCK + 1, BLOCK - 1, BLOCK - 1])
+                             [col * BLOCK_DIM + 1, row * BLOCK_DIM + 1, BLOCK_DIM - 1, BLOCK_DIM - 1])
     pygame.display.flip()  # Update visual surface (i.e. the entire display)
 
 
@@ -176,7 +175,6 @@ pygame.display.set_caption('Test')
 
 clock = pygame.time.Clock()
 window_size = [WINDOW_WIDTH, WINDOW_HEIGHT]
-block_size = 50  # in px TODO dynamic block sizing
 
 # Initialize drawing surface
 screen = pygame.display.set_mode(window_size)
@@ -189,7 +187,7 @@ NUM_TUPLES = int(len(array_form) / 3)
 NUM_VARS = max([abs(el) for el in array_form])
 ROWS = 6 * (NUM_TUPLES + 1)
 COLS = 3 + 2 * NUM_VARS
-BLOCK = min(WINDOW_HEIGHT / ROWS, WINDOW_WIDTH / COLS)
+BLOCK_DIM = min(WINDOW_HEIGHT / ROWS, WINDOW_WIDTH / COLS)
 
 # Set up variables
 row_pointer = 3
@@ -213,7 +211,7 @@ initSatisfiabilityClauses()
 
 draw(0, ROWS - 1, 0, COLS - 1)
 
-while done is False:
+while not done:
     if autosolve > -1:
         force(solution[autosolve])
         autosolve = autosolve + 1
@@ -250,7 +248,7 @@ while done is False:
                     if passes(temp, parsed_guess):
                         satisfied = True
                         parsed_guess
-                if satisfied is False:
+                if not satisfied:
                     solve = False
                     break
             if solve:
@@ -269,7 +267,7 @@ while done is False:
                 solution.append(UP)
                 solution.append(UP)
                 solution.append(UP)
-                shuffle = 2 * (11 - max([abs(nested_form[tuple][var])
+                shuffle = 2 * (NUM_VARS + 1 - max([abs(nested_form[tuple][var])
                                for var in range(3) if passes(nested_form[tuple][var], good_guess)]))
                 for i in range(shuffle):
                     solution.append(LEFT)
