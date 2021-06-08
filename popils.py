@@ -42,9 +42,13 @@ def initSatisfiabilityClauses():
         for j in range(VARS_PER_TUPLE):
             temp = array_form[index + j]
             # Map to -1, 0, or 1 (Negated, Absent, Present)
-            variable_states[abs(temp) - 1] = int(abs(temp) / temp)
+            variable_states[abs(temp) - 1] = sign(temp)
         place_gadget(variable_states, row_pointer)
         row_pointer += GADGET_HEIGHT
+
+
+def sign(num):
+    return int(abs(num) / num)
 
 
 def place_gadget(variable_states, bottom_row):
@@ -73,6 +77,51 @@ def place_sub_gadget(code, bottom_row, col):
         state[bottom_row + i][col] = SUB_GADGETS[code + 1][i]
 
 
+def move(vector):
+    global state, hidden, redRow, redCol, fresh
+
+    if vector == UP and state[redRow + 1][redCol] == SOFT:
+        fresh = False
+
+    else:
+        state[redRow][redCol] = hidden
+        redRow = redRow + vector[0]
+        redCol = redCol + vector[1]
+        hidden = state[redRow][redCol]
+        state[redRow][redCol] = PLAYER
+        draw(min(redRow, redRow - vector[0]), max(redRow, redRow - vector[0]),
+             min(redCol, redCol - vector[1]), max(redCol, redCol - vector[1]))
+
+
+def force(vector):
+    global state, hidden, redRow, redCol, fresh
+    target = state[redRow + vector[0]][redCol + vector[1]]
+    if vector == UP:
+        if target == SOFT:
+            fresh = False
+            for falling_row in range(redRow + 1, ROWS - 1):
+                state[falling_row][redCol] = state[falling_row + 1][redCol]
+            state[ROWS - 1][redCol] = HARD
+            draw(redRow + 1, ROWS - 1, redCol, redCol)
+        elif hidden == LADDER and (target != HARD):
+            move(UP)
+    elif target != HARD:
+        move(vector)
+
+
+def passes(var, guess):
+    return sign(var) * guess[abs(var) - 1] == 1
+
+
+def draw(min_row, max_row, min_col, max_col):
+    global state, screen
+    for row in range(min_row, max_row + 1):
+        for col in range(min_col, max_col + 1):
+            pygame.draw.rect(screen, state[row][col],
+                             [col * BLOCK + 1, (ROWS - row - 1) * BLOCK + 1, BLOCK - 1, BLOCK - 1])
+    pygame.display.update()
+
+
 def renderDisplay():
     screen.fill(BACKGROUND)
     for row in range(ROWS):
@@ -83,17 +132,18 @@ def renderDisplay():
     pygame.display.flip()  # Update visual surface (i.e. the entire display)
 
 
-
-    # ----- Main program begins here -----
+# ----- Main program begins here -----
 print()  # Give separation from pygame message
 
 # Read in 3SAT problem
 parser = argparse.ArgumentParser()
-input = parser.add_mutually_exclusive_group()
-input.add_argument('-i', '--instance', nargs='+', type=str,
-                   help="3SAT instance: (default = " + DEFAULT_3SAT + ")")
-input.add_argument('-f', '--filename',
-                   help="file containing an instance of 3SAT")
+input_type = parser.add_mutually_exclusive_group()
+input_type.add_argument('-i', metavar='VAR', dest='instance', nargs='*',
+                        type=str, help="1 2 -3 is equivalent to the clause (x1 || x2 || !x3). Default is " + DEFAULT_3SAT)
+input_type.add_argument('-f', dest='filename',
+                        help="file containing an instance of 3SAT")
+parser.add_argument('-s', dest='--solver', action='store_true',
+                    help='run puzzle auto-solver')
 args = parser.parse_args()
 
 # Currently these all just blindly accept the input they're given
@@ -134,10 +184,6 @@ screen = pygame.display.set_mode(window_size)
 # set player position
 hidden = SUPPORT
 
-# TODO multiple 3sat instances stored in files
-array_form = [int(el) for el in str.split(three_sat)]
-
-
 # Set up runtime constants
 NUM_TUPLES = int(len(array_form) / 3)
 NUM_VARS = max([abs(el) for el in array_form])
@@ -147,43 +193,9 @@ BLOCK = min(WINDOW_HEIGHT / ROWS, WINDOW_WIDTH / COLS)
 
 # Set up variables
 row_pointer = 3
-nested_form = [[array_form[3 * i + j] for j in range(3)] for i in range(NUM_TUPLES)]
+nested_form = [[array_form[3 * i + j]
+                for j in range(3)] for i in range(NUM_TUPLES)]
 
-# gadgets
-def sign(num):
-    return int(abs(num) / num)
-
-# setup
-screen.fill(BACKGROUND)
-
-def move(vector):
-    global state, hidden, redRow, redCol, fresh
-    
-    if vector == UP and state[redRow + 1][redCol] == SOFT:
-        fresh = False
-        
-    else:
-        state[redRow][redCol] = hidden
-        redRow = redRow + vector[0]
-        redCol = redCol + vector[1]
-        hidden = state[redRow][redCol]
-        state[redRow][redCol] = PLAYER
-        draw(min(redRow, redRow - vector[0]), max(redRow, redRow - vector[0]), 
-             min(redCol, redCol - vector[1]), max(redCol, redCol - vector[1]))
-def force(vector):
-    global state, hidden, redRow, redCol, fresh
-    target = state[redRow + vector[0]][redCol + vector[1]]
-    if vector == UP:
-        if target == SOFT:
-            fresh = False
-            for falling_row in range(redRow + 1, ROWS - 1):
-                state[falling_row][redCol] = state[falling_row + 1][redCol]
-            state[ROWS - 1][redCol] = HARD
-            draw(redRow + 1, ROWS - 1, redCol, redCol)
-        elif hidden == LADDER and (target != HARD):
-            move(UP)
-    elif target != HARD:
-        move(vector)
 done = False
 fresh = True
 solution = []
@@ -199,28 +211,17 @@ state = initSpecialAreas()
 # Place gadgets to construct puzzle
 initSatisfiabilityClauses()
 
-def passes(var, guess):
-    return sign(var) * guess[abs(var) - 1] == 1
-
-def draw(min_row, max_row, min_col, max_col):
-    global state, screen
-    for row in range(min_row, max_row + 1):
-        for col in range(min_col, max_col + 1):
-            pygame.draw.rect(screen, state[row][col],
-                             [col * BLOCK + 1, (ROWS - row - 1) * BLOCK + 1, BLOCK - 1, BLOCK - 1])
-    pygame.display.update()
-    
 draw(0, ROWS - 1, 0, COLS - 1)
 
 while done is False:
-    if autosolve > -1: #TODO why is this slow??
+    if autosolve > -1:
         force(solution[autosolve])
         autosolve = autosolve + 1
     for event in pygame.event.get():
         if event.type == pygame.QUIT:
             done = True
         else:
-            if event.type == pygame.KEYUP:  # TODO functions!
+            if event.type == pygame.KEYUP:
                 if event.key == pygame.K_LEFT:
                     force(LEFT)
                 elif event.key == pygame.K_RIGHT:
@@ -232,14 +233,15 @@ while done is False:
         while (state[redRow - 1][redCol] == SUPPORT and hidden == SUPPORT):
             force(DOWN)
     if fresh and redRow == 1 and redCol == 1 and event.type == pygame.KEYUP and event.key == pygame.K_a:
-        #autosolve
+        # autosolve
         autosolve = 0
-        #compute vector sequence
-        #find the solving variable assignment by brute force
+        # compute vector sequence
+        # find the solving variable assignment by brute force
         good_guess = []
         for guess in range(2 ** NUM_VARS):
             form = r'{:0' + str(NUM_VARS) + r'b}'
-            parsed_guess = [int(form.format(guess)[j]) * 2 - 1 for j in range(NUM_VARS)]
+            parsed_guess = [int(form.format(guess)[j]) *
+                            2 - 1 for j in range(NUM_VARS)]
             solve = True
             for clause in range(NUM_TUPLES):
                 satisfied = False
@@ -256,18 +258,19 @@ while done is False:
         if len(good_guess) == 0:
             done = True
         else:
-            #set variables
+            # set variables
             for var in good_guess:
                 if var == 1:
                     solution.append(UP)
                 solution.append(RIGHT)
                 solution.append(RIGHT)
-            #traverse level
+            # traverse level
             for tuple in range(NUM_TUPLES):
                 solution.append(UP)
                 solution.append(UP)
                 solution.append(UP)
-                shuffle = 2 * (11 - max([abs(nested_form[tuple][var]) for var in range(3) if passes(nested_form[tuple][var], good_guess)]))
+                shuffle = 2 * (11 - max([abs(nested_form[tuple][var])
+                               for var in range(3) if passes(nested_form[tuple][var], good_guess)]))
                 for i in range(shuffle):
                     solution.append(LEFT)
                 solution.append(UP)
@@ -281,6 +284,3 @@ while done is False:
     clock.tick(20)
     renderDisplay()
 pygame.quit()
-
-
-

@@ -27,13 +27,13 @@ SUB_GADGET_HEIGHT = 4
 GADGET_HEIGHT = 6
 
 # default 3SAT instance. Will be ignored if user provides alternative
-DEFAULT_3SAT = '9 7 2 6 4 1 8 7 3 -2 -4 -9 -7 -6 -1 -8 -3 -5 5 10 -10'
+DEFAULT_3SAT = '1 2 3 -2 -3 4 1 -3 6 -1 4 5 2 -4 -6'
 
 UNUSED = 0
 NEGATED = -1
 NONNEGATED = 1
 
-#DIRECTIONS
+# DIRECTIONS
 LEFT = [0, -1]
 RIGHT = [0, 1]
 UP = [1, 0]
