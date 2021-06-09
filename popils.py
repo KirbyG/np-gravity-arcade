@@ -48,7 +48,7 @@ def initSatisfiabilityClauses():
         row_pointer += GADGET_HEIGHT
 
 
-# Map number to -1, 0, or 1 (Negated, Absent, Present)
+# Map num to -1, 0, or 1 (Negated, Absent, Present)
 def sign(num):
     return int(abs(num) / num)
 
@@ -83,25 +83,32 @@ def place_sub_gadget(varState, bottom_row, col):
         state[bottom_row + i][col] = SUB_GADGETS[varState + 1][i]
 
 
+# Change player's coordinate's and refresh the displayed game grid
 def move(vector):
     global state, hidden, redRow, redCol, fresh
+    vertical = 0
+    horizontal = 1
 
     if vector == UP and state[redRow + 1][redCol] == SOFT:
         fresh = False
 
     else:
         state[redRow][redCol] = hidden
-        redRow = redRow + vector[0]
-        redCol = redCol + vector[1]
+        redRow = redRow + vector[vertical]
+        redCol = redCol + vector[horizontal]
         hidden = state[redRow][redCol]
         state[redRow][redCol] = PLAYER
-        draw(min(redRow, redRow - vector[0]), max(redRow, redRow - vector[0]),
-             min(redCol, redCol - vector[1]), max(redCol, redCol - vector[1]))
+        draw(min(redRow, redRow - vector[vertical]), max(redRow, redRow - vector[vertical]),
+             min(redCol, redCol - vector[horizontal]), max(redCol, redCol - vector[horizontal]))
 
 
+# Wrapper for move() that enables auto-solving
 def force(vector):
     global state, hidden, redRow, redCol, fresh
-    target = state[redRow + vector[0]][redCol + vector[1]]
+    vertical = 0
+    horizontal = 1
+
+    target = state[redRow + vector[vertical]][redCol + vector[horizontal]]
     if vector == UP:
         if target == SOFT:
             fresh = False
@@ -172,23 +179,17 @@ def passes(var, guess):
     return sign(var) * guess[abs(var) - 1] == 1
 
 
+# Render the designated portion of the display
 def draw(min_row, max_row, min_col, max_col):
     global state, screen
+    rectangles = []
+
     for row in range(min_row, max_row + 1):
-        for col in range(min_col, max_col + 1):
-            pygame.draw.rect(screen, state[row][col],
-                             [col * BLOCK_DIM + 1, (ROWS - row - 1) * BLOCK_DIM + 1, BLOCK_DIM - 1, BLOCK_DIM - 1])
-    pygame.display.update()
-
-
-def renderDisplay():
-    screen.fill(BACKGROUND)
-    for row in range(ROWS):
         # Create a rect for each block according to its saved state/color
-        for col in range(COLS):
-            pygame.draw.rect(screen, state[ROWS - row - 1][col],
-                             [col * BLOCK_DIM + 1, row * BLOCK_DIM + 1, BLOCK_DIM - 1, BLOCK_DIM - 1])
-    pygame.display.flip()  # Update visual surface (i.e. the entire display)
+        for col in range(min_col, max_col + 1):
+            rectangles.append(pygame.draw.rect(screen, state[row][col],
+                                               [col * BLOCK_DIM + 1, (ROWS - row - 1) * BLOCK_DIM + 1, BLOCK_DIM - 1, BLOCK_DIM - 1]))
+    pygame.display.update(rectangles)  # Update the changed areas
 
 
 # ----- Main program begins here -----
@@ -253,16 +254,14 @@ BLOCK_DIM = min(WINDOW_HEIGHT / ROWS, WINDOW_WIDTH / COLS)
 
 # Set up variables
 row_pointer = 3
-nested_form = [[array_form[VARS_PER_TUPLE * i + j]
-                for j in range(VARS_PER_TUPLE)] for i in range(NUM_TUPLES)]
-
 done = False
 fresh = True
 solution = []
 autosolve = 0
-
 redRow = 1
 redCol = 1
+nested_form = [[array_form[VARS_PER_TUPLE * i + j]
+                for j in range(VARS_PER_TUPLE)] for i in range(NUM_TUPLES)]
 
 # Create bottom 3 rows & top 2 rows of puzzle
 # Remaining area, including frame, is made of HARD blocks
@@ -271,6 +270,7 @@ state = initSpecialAreas()
 # Place gadgets to construct puzzle
 initSatisfiabilityClauses()
 
+# Render initial gamestate on screen
 draw(0, ROWS - 1, 0, COLS - 1)
 
 if solve:
@@ -297,6 +297,5 @@ while not done:
         while (state[redRow - 1][redCol] == SUPPORT and hidden == SUPPORT):
             force(DOWN)
     clock.tick(15)
-    renderDisplay()
     if hidden is PRINCESS:
         done = True
