@@ -8,22 +8,24 @@ from popils_constants import *
 def initSpecialAreas():
     playerRow = playerCol = 1
     assignmentRow = 2
-    # Initially set entire level to indestructible blocks
-    # Need 'for' in secodn dimension because Python lists are "shallow"
+    transitionCol = COLS - 2  # Column with path (ladders) between areas
+    # Initially set entire zone to indestructible blocks
+    # Using this "*" notation twice doesn't produce expected results
+    #   because Python just makes pointers to original tuple
     block_type = [[HARD] * COLS for row in range(ROWS)]
 
     # Starting zone
     block_type[playerRow][playerCol] = PLAYER
-    for i in range(2, COLS - 2):
+    for i in range(playerCol + 1, transitionCol):
         block_type[playerRow][i] = SUPPORT
-    block_type[playerRow][COLS - 2] = LADDER
-    for i in range(1, COLS - 3, 2):
+    block_type[playerRow][transitionCol] = LADDER
+    for i in range(playerCol, transitionCol - 1, 2):
         block_type[assignmentRow][i] = SOFT
-    block_type[assignmentRow][COLS - 2] = LADDER
+    block_type[assignmentRow][transitionCol] = LADDER
 
     # Ending zone
-    block_type[ROWS - 2][COLS - 2] = PRINCESS
-    block_type[ROWS - 3][COLS - 2] = SOFT  # Stop princess from walking
+    block_type[ROWS - 2][transitionCol] = PRINCESS
+    block_type[ROWS - 3][transitionCol] = SOFT  # Stop princess from walking
 
     # Send back partially-built level
     return block_type
@@ -31,49 +33,54 @@ def initSpecialAreas():
 
 def initSatisfiabilityClauses():
     global row_pointer
-    VARS_PER_TUPLE = 3  # Definition of 3SAT
 
-    for i in range(NUM_TUPLES):
-        index = VARS_PER_TUPLE * i
-        variable_states = [UNUSED] * NUM_VARS
+    for tuple in range(NUM_TUPLES):
+        index = VARS_PER_TUPLE * tuple
+        variable_states = [ABSENT] * NUM_VARS
 
         # Determine which variables were used in which clauses
-        for j in range(VARS_PER_TUPLE):
-            temp = array_form[index + j]
-            # Map to -1, 0, or 1 (Negated, Absent, Present)
-            variable_states[abs(temp) - 1] = sign(temp)
+        for offset in range(VARS_PER_TUPLE):
+            var = array_form[index + offset]
+            # Convert variable label --> variable state
+            variable_states[abs(var) - 1] = sign(var)
+        # Fill in gadget region for each variable for current tuple
         place_gadget(variable_states, row_pointer)
         row_pointer += GADGET_HEIGHT
 
 
+# Map number to -1, 0, or 1 (Negated, Absent, Present)
 def sign(num):
     return int(abs(num) / num)
 
 
 def place_gadget(variable_states, bottom_row):
+    startCol = 2  # Column of player's starting position
+    transitionCol = COLS - 2  # Column with path (ladders) between areas
+
     # Create transition to next zone
-    state[bottom_row][COLS - 2] = LADDER
-    state[bottom_row + 1][COLS - 2] = SUPPORT
-    # state[bottom_row + 2][COLS - 2] is already HARD
-    state[bottom_row + 3][COLS - 2] = LADDER
-    state[bottom_row + 4][COLS - 2] = LADDER
-    state[bottom_row + 5][COLS - 2] = LADDER
+    state[bottom_row][transitionCol] = LADDER
+    state[bottom_row + 1][transitionCol] = SUPPORT
+    # state[bottom_row + 2][transitionCol] is already HARD
+    state[bottom_row + 3][transitionCol] = LADDER
+    state[bottom_row + 4][transitionCol] = LADDER
+    state[bottom_row + 5][transitionCol] = LADDER
 
     # Carve out walkable area
-    for i in range(2, COLS - 2, 2):
+    for i in range(startCol, transitionCol, 2):
         state[bottom_row + 1][i] = SUPPORT
         state[bottom_row + 3][i] = SUPPORT
         state[bottom_row + 4][i] = SUPPORT
 
     # Place ladders according to gadget structure
-    for i in range(len(variable_states)):
-        place_sub_gadget(variable_states[i], bottom_row + 1, 2 * i + 1)
+    for varIndex in range(len(variable_states)):
+        place_sub_gadget(
+            variable_states[varIndex], bottom_row + 1, 2 * varIndex + 1)
 
 
-# Clone sub-gadget structure
-def place_sub_gadget(code, bottom_row, col):
+# Clone sub-gadget ladder structure
+def place_sub_gadget(varState, bottom_row, col):
     for i in range(SUB_GADGET_HEIGHT):
-        state[bottom_row + i][col] = SUB_GADGETS[code + 1][i]
+        state[bottom_row + i][col] = SUB_GADGETS[varState + 1][i]
 
 
 def move(vector):
