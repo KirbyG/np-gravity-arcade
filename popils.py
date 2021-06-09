@@ -115,6 +115,59 @@ def force(vector):
         move(vector)
 
 
+def autoSolvePuzzle():
+    global solution, solve, nested_form
+
+    # compute vector sequence
+    # find the solving variable assignment by brute force
+    good_guess = []
+    for guess in range(2 ** NUM_VARS):
+        # Convert ordinal value of guess to its binary representation
+        format_str = r'{:0' + str(NUM_VARS) + r'b}'
+        parsed_guess = [int(format_str.format(guess)[j]) *
+                        2 - 1 for j in range(NUM_VARS)]
+
+        # Save current solution guess iff
+        # Every clause has at least one variable that 'passes'
+        # Meaning it yields a viable path through the clause
+        if all([any([passes(nested_form[clause][var], parsed_guess)
+                    for var in range(VARS_PER_TUPLE)]) for clause in range(NUM_TUPLES)]):
+            good_guess = parsed_guess
+
+    if len(good_guess) == 0:
+        print("3SAT instance is not solvable!")
+        solve = False
+    else:
+        # set variables
+        for truthiness in good_guess:
+            if truthiness == 1:
+                solution.append(UP)
+            solution.append(RIGHT)
+            solution.append(RIGHT)
+        # traverse level
+        for tuple in range(NUM_TUPLES):
+            solution.append(UP)
+            solution.append(UP)
+            solution.append(UP)
+            lateral_blocks = 2 * (NUM_VARS + 1 - max([abs(nested_form[tuple][var])
+                                                      for var in range(VARS_PER_TUPLE) if passes(nested_form[tuple][var], good_guess)]))
+
+            # Move to nearest viable ladder
+            for i in range(lateral_blocks):
+                solution.append(LEFT)
+            solution.append(UP)
+            solution.append(UP)
+            for i in range(lateral_blocks):
+                solution.append(RIGHT)
+            solution.append(UP)
+
+        # Climb to princess
+        solution.append(UP)
+        solution.append(UP)
+        solution.append(UP)
+
+
+# Variable state (-1, 0, or 1) * variable truth setting (-1 or 1)
 def passes(var, guess):
     return sign(var) * guess[abs(var) - 1] == 1
 
@@ -148,7 +201,7 @@ input_type.add_argument('-i', metavar='VAR', dest='instance', nargs='*',
                         type=str, help="1 2 -3 is equivalent to the clause (x1 || x2 || !x3). Default is " + DEFAULT_3SAT)
 input_type.add_argument('-f', dest='filename',
                         help="file containing an instance of 3SAT")
-parser.add_argument('-s', dest='--solver', action='store_true',
+parser.add_argument('-s', dest='solver', action='store_true',
                     help='run puzzle auto-solver')
 args = parser.parse_args()
 
@@ -163,6 +216,8 @@ elif args.filename:
         three_sat = file.readline()
 else:
     three_sat = DEFAULT_3SAT
+
+solve = args.solver
 
 array_form = [int(el) for el in str.split(three_sat)]
 truncation_needed = False
@@ -198,13 +253,13 @@ BLOCK_DIM = min(WINDOW_HEIGHT / ROWS, WINDOW_WIDTH / COLS)
 
 # Set up variables
 row_pointer = 3
-nested_form = [[array_form[3 * i + j]
-                for j in range(3)] for i in range(NUM_TUPLES)]
+nested_form = [[array_form[VARS_PER_TUPLE * i + j]
+                for j in range(VARS_PER_TUPLE)] for i in range(NUM_TUPLES)]
 
 done = False
 fresh = True
 solution = []
-autosolve = -1
+autosolve = 0
 
 redRow = 1
 redCol = 1
@@ -218,8 +273,12 @@ initSatisfiabilityClauses()
 
 draw(0, ROWS - 1, 0, COLS - 1)
 
+if solve:
+    autoSolvePuzzle()
+
+# Main game loop
 while not done:
-    if autosolve > -1:
+    if solve:
         force(solution[autosolve])
         autosolve = autosolve + 1
     for event in pygame.event.get():
@@ -237,55 +296,7 @@ while not done:
                     force(DOWN)
         while (state[redRow - 1][redCol] == SUPPORT and hidden == SUPPORT):
             force(DOWN)
-    if fresh and redRow == 1 and redCol == 1 and event.type == pygame.KEYUP and event.key == pygame.K_a:
-        # autosolve
-        autosolve = 0
-        # compute vector sequence
-        # find the solving variable assignment by brute force
-        good_guess = []
-        for guess in range(2 ** NUM_VARS):
-            form = r'{:0' + str(NUM_VARS) + r'b}'
-            parsed_guess = [int(form.format(guess)[j]) *
-                            2 - 1 for j in range(NUM_VARS)]
-            solve = True
-            for clause in range(NUM_TUPLES):
-                satisfied = False
-                for var in range(3):
-                    temp = nested_form[clause][var]
-                    if passes(temp, parsed_guess):
-                        satisfied = True
-                        parsed_guess
-                if not satisfied:
-                    solve = False
-                    break
-            if solve:
-                good_guess = parsed_guess
-        if len(good_guess) == 0:
-            done = True
-        else:
-            # set variables
-            for var in good_guess:
-                if var == 1:
-                    solution.append(UP)
-                solution.append(RIGHT)
-                solution.append(RIGHT)
-            # traverse level
-            for tuple in range(NUM_TUPLES):
-                solution.append(UP)
-                solution.append(UP)
-                solution.append(UP)
-                shuffle = 2 * (NUM_VARS + 1 - max([abs(nested_form[tuple][var])
-                               for var in range(3) if passes(nested_form[tuple][var], good_guess)]))
-                for i in range(shuffle):
-                    solution.append(LEFT)
-                solution.append(UP)
-                solution.append(UP)
-                for i in range(shuffle):
-                    solution.append(RIGHT)
-                solution.append(UP)
-            solution.append(UP)
-            solution.append(UP)
-            solution.append(UP)
-    clock.tick(20)
+    clock.tick(15)
     renderDisplay()
-pygame.quit()
+    if hidden is PRINCESS:
+        done = True

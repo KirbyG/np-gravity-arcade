@@ -11,3 +11,4 @@ TODOs
 - Print prettier and more descriptive output (CNF 3SAT, solution, etc.)
 - Label blocks in puzzle for variables
 - Create more example files
+- Change input format to be slightly more readable (commas between tuples?)
