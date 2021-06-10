@@ -248,6 +248,7 @@ BLOCK_DIM = min(WINDOW_HEIGHT / ROWS, WINDOW_WIDTH / COLS)
 done = False
 nested_form = [[array_form[VARS_PER_TUPLE * i + j]
                 for j in range(VARS_PER_TUPLE)] for i in range(NUM_TUPLES)]
+solution = []
 if args.solver:
     solution = generateSolution()
     solution_step = 0
@@ -289,3 +290,4 @@ while not done:
     clock.tick(15)  # Cap framerate at 15 FPS
     if player.occupying is PRINCESS:
         done = True
+pygame.quit()
