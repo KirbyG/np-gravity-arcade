@@ -172,7 +172,7 @@ def generateSolution():
         return steps
 
 
-# Variable state (-1, 0, or 1) * variable truth setting (-1 or 1)
+# Returns the product of variable state (-1, 0, or 1) and variable truth setting (-1 or 1)
 def passes(var, guess):
     return sign(var) * guess[abs(var) - 1] == 1
 
@@ -216,8 +216,6 @@ elif args.filename:
 else:
     three_sat = DEFAULT_3SAT
 
-solve = args.solver
-
 array_form = [int(el) for el in str.split(three_sat)]
 truncation_needed = False
 while len(array_form) % 3 != 0:
@@ -228,16 +226,15 @@ if truncation_needed:
 print("3SAT instance: " + str(array_form))
 # TODO print pretty version of 3SAT in conjunctive normal form
 
-# Initialize all pygame submodules
+# Initialize pygame submodules
 pygame.init()
+clock = pygame.time.Clock()
 
 # Set window title
 pygame.display.set_caption('Test')
 
-clock = pygame.time.Clock()
-window_size = [WINDOW_WIDTH, WINDOW_HEIGHT]
-
 # Initialize drawing surface
+window_size = [WINDOW_WIDTH, WINDOW_HEIGHT]
 screen = pygame.display.set_mode(window_size)
 
 # Set up runtime constants
@@ -251,6 +248,9 @@ BLOCK_DIM = min(WINDOW_HEIGHT / ROWS, WINDOW_WIDTH / COLS)
 done = False
 nested_form = [[array_form[VARS_PER_TUPLE * i + j]
                 for j in range(VARS_PER_TUPLE)] for i in range(NUM_TUPLES)]
+if args.solver:
+    solution = generateSolution()
+    solution_step = 0
 
 # Create bottom 3 rows & top 2 rows of puzzle
 # Remaining area, including frame, is made of HARD blocks
@@ -265,13 +265,9 @@ initSatisfiabilityClauses()
 # Render initial gamestate on screen
 draw(0, ROWS - 1, 0, COLS - 1)
 
-if solve:
-    solution = generateSolution()
-    solution_step = 0
-
 # Main game loop
 while not done:
-    if solve and len(solution):
+    if len(solution) != 0:
         force(solution[solution_step], player)
         solution_step += 1
     for event in pygame.event.get():
@@ -290,6 +286,6 @@ while not done:
         # If player walks off the top of a ladder, make them fall
         while (state[player.row - 1][player.col] == SUPPORT and player.occupying == SUPPORT):
             force(DOWN, player)
-    clock.tick(15)
+    clock.tick(15)  # Cap framerate at 15 FPS
     if player.occupying is PRINCESS:
         done = True
