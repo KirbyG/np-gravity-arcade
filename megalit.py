@@ -1,0 +1,2 @@
+class Megalit(Puzzle):
+    pass

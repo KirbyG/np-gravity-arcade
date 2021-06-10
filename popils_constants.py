@@ -27,7 +27,7 @@ SUB_GADGET_HEIGHT = 4
 GADGET_HEIGHT = 6
 
 # Definition of 3SAT
-VARS_PER_TUPLE = 3
+VARS_PER_CLAUSE = 3
 
 # Default 3SAT instance. Will be ignored if user provides alternative
 DEFAULT_3SAT = '1 2 3 -2 -3 4 1 -3 6 -1 4 5 2 -4 -6'
