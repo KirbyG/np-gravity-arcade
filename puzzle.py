@@ -14,6 +14,7 @@ class Puzzle:
         for guess in range(2 ** self.num_unique_vars):
             # Convert ordinal value of guess to its binary representation
             format_str = r'{:0' + str(self.num_unique_vars) + r'b}'
+            # TODO make this line a little more readable (or add explanation)
             parsed_guess = [int(format_str.format(guess)[j]) *
                             2 - 1 for j in range(self.num_unique_vars)]
 
