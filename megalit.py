@@ -1,2 +1,2 @@
-class Megalit(Puzzle):
+class Megalit(Game):
     pass

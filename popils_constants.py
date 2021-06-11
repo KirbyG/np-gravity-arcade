@@ -1,7 +1,3 @@
-# Measured in px
-WINDOW_WIDTH = 500
-WINDOW_HEIGHT = 1000
-
 # Types of blocks
 PLAYER = (255, 0, 0)  # red
 LADDER = (0, 0, 255)  # blue
@@ -26,17 +22,11 @@ SUB_GADGETS = [SUB_GADGET_NEGATED, SUB_GADGET_ABSENT, SUB_GADGET_PRESENT]
 SUB_GADGET_HEIGHT = 4
 GADGET_HEIGHT = 6
 
-# Definition of 3SAT
-VARS_PER_CLAUSE = 3
-
-# Default 3SAT instance. Will be ignored if user provides alternative
-DEFAULT_3SAT = '1 2 3 -2 -3 4 1 -3 6 -1 4 5 2 -4 -6'
-
-# Directions
-LEFT = [0, -1]
-RIGHT = [0, 1]
-UP = [1, 0]
-DOWN = [-1, 0]
+# Set up runtime constants
+# NUM_VARS = max([abs(el) for el in array_form])
+# ROWS = 6 * (NUM_TUPLES + 1)
+# COLS = 3 + 2 * NUM_VARS
+# BLOCK_DIM = min(WINDOW_HEIGHT / ROWS, WINDOW_WIDTH / COLS)
 
 
 class Player:
@@ -44,3 +34,4 @@ class Player:
         self.occupying = SUPPORT
         self.row = 1
         self.col = 1
+        self.color = PLAYER
