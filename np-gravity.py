@@ -9,9 +9,6 @@ import common_constants as const
 # Default 3SAT instance. Will be ignored if user provides alternative
 DEFAULT_3SAT = '1 2 3 -2 -3 4 1 -3 6 -1 4 5 2 -4 -6'
 
-# Definition of 3SAT
-VARS_PER_CLAUSE = 3
-
 # Measured in px
 WINDOW_WIDTH = 500
 WINDOW_HEIGHT = 1000
@@ -49,7 +46,7 @@ def convertToCanonicalForm(args):
         array_form = [int(el) for el in str.split(DEFAULT_3SAT)]
 
     # Truncate input if there are variables that don't form a full clause
-    extra_inputs = len(array_form) % 3
+    extra_inputs = len(array_form) % const.VARS_PER_CLAUSE
     array_form = array_form[:-extra_inputs]
     if extra_inputs != 0:
         print("WARNING: 3SAT requires tuples of exactly size 3. Input has been truncated appropriately.")
@@ -57,8 +54,8 @@ def convertToCanonicalForm(args):
     NUM_TUPLES = int(len(array_form) / 3)
 
     # 2D representation of 3SAT problem (clauses contain vars)
-    nested_form = [[array_form[VARS_PER_CLAUSE * i + j]
-                    for j in range(VARS_PER_CLAUSE)] for i in range(NUM_TUPLES)]
+    nested_form = [[array_form[const.VARS_PER_CLAUSE * i + j]
+                    for j in range(const.VARS_PER_CLAUSE)] for i in range(NUM_TUPLES)]
     reduced_form = convertToReducedForm(raw_input, nested_form)
     return reduced_form
 
@@ -77,7 +74,7 @@ def convertToReducedForm(raw_input, nested_form):
 
     # Remove malformed clauses with duplicate vars
     nested_form = [clause for clause in nested_form if len(
-        {abs(var) for var in clause}) == VARS_PER_CLAUSE]
+        {abs(var) for var in clause}) == const.VARS_PER_CLAUSE]
 
     return nested_form
 
@@ -126,58 +123,56 @@ def draw(bounds, screen, game, player):
     pygame.display.update(rectangles)  # Update the changed areas
 
 
-# Only run this code if this file is executed directly (not imported)
-if __name__ == "__main__":
-    print()  # Give separation from pygame message
+# ----- Main program code begins here -----
+print()  # Give separation from pygame message
 
-    # Read in 3SAT problem
-    args = parseArguments()
+# Read in 3SAT problem
+args = parseArguments()
 
-    # Put 3SAT instance into standard format
-    canonical_form = convertToCanonicalForm(args)
+# Put 3SAT instance into standard format
+canonical_form = convertToCanonicalForm(args)
 
-    # Print pretty version of 3SAT in conjunctive normal form
-    printThreeSat(canonical_form)
+# Print pretty version of 3SAT in conjunctive normal form
+printThreeSat(canonical_form)
 
-    # Create render surface and synchronization clock
-    screen, clock = setUpPygame()
+# Create render surface and synchronization clock
+screen, clock = setUpPygame()
 
-    # Solve the given 3SAT instance
-    puzzle = Puzzle(canonical_form)
+# Solve the given 3SAT instance
+puzzle = Puzzle(canonical_form)
 
-    # Instantiate game representation
-    if args.megalit:
-        game = Megalit(puzzle)
+# Instantiate game representation
+if args.megalit:
+    game = Megalit(puzzle)
+else:
+    game = Popils(puzzle)
+
+# Initialize player position
+player = Player()
+
+# Render initial gamestate on screen
+window_boundaries = [0, game.num_rows - 1, 0, game.num_cols - 1]
+draw(window_boundaries, screen, game, player)
+
+# Main game loop
+while not game.complete:
+    altered_region = [0, 0, 0, 0]
+    if len(game.solution) != 0:
+        game.force(game.solution[game.solution_step], player)
+        game.solution_step += 1
     else:
-        game = Popils(puzzle)
-
-    # Initialize player position
-    player = Player()
-
-    # Render initial gamestate on screen
-    window_boundaries = [0, game.game.num_rows - 1, 0, game.game.num_cols - 1]
-    draw(window_boundaries, screen, game, player)
-
-    # Main game loop
-    while not game.complete:
-        altered_region = [0, 0, 0, 0]
-        if len(game.solution) != 0:
-            game.force(game.solution[game.solution_step], player)
-            game.solution_step += 1
-        else:
-            for event in pygame.event.get():
-                if event.type == pygame.QUIT:
-                    game.complete = True
-                else:
-                    if event.type == pygame.KEYUP:
-                        if event.key == pygame.K_LEFT:
-                            altered_region = game.force(const.LEFT, player)
-                        elif event.key == pygame.K_RIGHT:
-                            altered_region = game.force(const.RIGHT, player)
-                        elif event.key == pygame.K_UP:
-                            altered_region = game.force(const.UP, player)
-                        elif event.key == pygame.K_DOWN:
-                            altered_region = game.force(const.DOWN, player)
-        draw(altered_region, screen, game, player)
-        # Cap framerate at 15 FPS
-        clock.tick(15)
+        for event in pygame.event.get():
+            if event.type == pygame.QUIT:
+                game.complete = True
+            else:
+                if event.type == pygame.KEYUP:
+                    if event.key == pygame.K_LEFT:
+                        altered_region = game.force(const.LEFT, player)
+                    elif event.key == pygame.K_RIGHT:
+                        altered_region = game.force(const.RIGHT, player)
+                    elif event.key == pygame.K_UP:
+                        altered_region = game.force(const.UP, player)
+                    elif event.key == pygame.K_DOWN:
+                        altered_region = game.force(const.DOWN, player)
+    draw(altered_region, screen, game, player)
+    clock.tick(15)  # Cap framerate at 15 FPS
