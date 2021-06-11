@@ -4,6 +4,7 @@ from puzzle import Puzzle
 from popils import Popils
 from megalit import Megalit
 from popils_constants import Player
+import common_constants as const
 
 # Default 3SAT instance. Will be ignored if user provides alternative
 DEFAULT_3SAT = '1 2 3 -2 -3 4 1 -3 6 -1 4 5 2 -4 -6'
@@ -14,12 +15,6 @@ VARS_PER_CLAUSE = 3
 # Measured in px
 WINDOW_WIDTH = 500
 WINDOW_HEIGHT = 1000
-
-# Directions as vectors
-LEFT = [0, -1]
-RIGHT = [0, 1]
-UP = [1, 0]
-DOWN = [-1, 0]
 
 
 def parseArguments():
@@ -176,13 +171,13 @@ if __name__ == "__main__":
                 else:
                     if event.type == pygame.KEYUP:
                         if event.key == pygame.K_LEFT:
-                            altered_region = game.force(LEFT, player)
+                            altered_region = game.force(const.LEFT, player)
                         elif event.key == pygame.K_RIGHT:
-                            altered_region = game.force(RIGHT, player)
+                            altered_region = game.force(const.RIGHT, player)
                         elif event.key == pygame.K_UP:
-                            altered_region = game.force(UP, player)
+                            altered_region = game.force(const.UP, player)
                         elif event.key == pygame.K_DOWN:
-                            altered_region = game.force(DOWN, player)
+                            altered_region = game.force(const.DOWN, player)
         draw(altered_region, screen, game, player)
         # Cap framerate at 15 FPS
         clock.tick(15)
