@@ -28,4 +28,8 @@ class Game(ABC):  # tile-based game, either popils or megalit
 
 class Block():
     def __init__(self, color, traversable, repulsion_force=const.DOWN, connectivity=[], destructible=False):
-        pass
+        self.color = color
+        self.traversible = traversable
+        self.repulsion_force = repulsion_force
+        self.connectivity = connectivity
+        self.destructible = destructible
