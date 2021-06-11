@@ -1,0 +1,2 @@
+class Megalit(Game):
+    pass
