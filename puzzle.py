@@ -1,52 +1,37 @@
-from abc import ABC, abstractmethod
-from popils_constants import *
+import common_constants as const
 
 
-class Puzzle(ABC):  # tile-based game, either popils or megalit
-    @abstractmethod
+class Puzzle:
     def __init__(self, three_sat):
-        # reduce three_sat to initial game matrix
-        self.state = self.reduce_three_sat()
-        self.num_unique_vars = max([abs(var)
-                                    for clause in self.three_sat for var in clause])
+        self.three_sat = three_sat
         self.num_clauses = len(three_sat)
-        self.solution = self.solve_three_sat()
+        self.num_unique_vars = len({abs(var) for var in three_sat})
+        self.solution = self._findSolution()
 
-    # Map num to -1, 0, or 1 (Negated, Absent, Present)
-    def sign(self, num):
-        return int(abs(num) / num)
-
-    # Returns the product of variable state (-1, 0, or 1) and variable truth setting (-1 or 1)
-    def passes(self, var, guess):
-        return self.sign(var) * guess[abs(var) - 1] == 1
-
-    def solve_three_sat(self):
+    def _findSolution(self):
         # compute vector sequence
         # find the solving variable assignment by brute force
-        good_guess = []
-        for guess in range(2 ** self.num_vars):
+        for guess in range(2 ** self.num_unique_vars):
             # Convert ordinal value of guess to its binary representation
-            format_str = r'{:0' + str(self.num_vars) + r'b}'
+            format_str = r'{:0' + str(self.num_unique_vars) + r'b}'
+            # TODO make this line a little more readable (or add explanation)
             parsed_guess = [int(format_str.format(guess)[j]) *
-                            2 - 1 for j in range(self.num_vars)]
+                            2 - 1 for j in range(self.num_unique_vars)]
 
             # Save current solution guess iff
             # Every clause has at least one variable that 'passes'
-            # Meaning it yields a viable path through the clause
-            if all([any([self.passes(self.three_sat[clause][var], parsed_guess)
-                        for var in range(VARS_PER_CLAUSE)]) for clause in range(self.num_clauses)]):
-                good_guess = parsed_guess
+            # Meaning it makes the value of the clause 'True'
+            if all([any([self._passes(self.three_sat[clause][var], parsed_guess)
+                        for var in range(const.VARS_PER_CLAUSE)]) for clause in range(self.num_clauses)]):
+                return parsed_guess
 
-        return good_guess
+        # If we made it here, none of the guesses were valid solutions to the problem
+        return []
 
-    @abstractmethod
-    def reduce_three_sat(self):
-        pass
+    # Returns the product of variable state (-1, 0, or 1) and variable truth setting (-1 or 1)
+    def _passes(self, var, guess):
+        return self._sign(var) * guess[abs(var) - 1] == 1
 
-
-# Place gadgets to construct puzzle
-initSatisfiabilityClauses()
-
-# Create bottom 3 rows & top 2 rows of puzzle
-# Remaining area, including frame, is made of HARD blocks
-state = initSpecialAreas()
+    # Map num to -1, 0, or 1 (Negated, Absent, Present)
+    def _sign(self, num):
+        return int(abs(num) / num)

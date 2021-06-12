@@ -1,3 +1,6 @@
+from abc import ABC, abstractmethod
+
+
 class Game:  # tile-based game, either popils or megalit
     def __init__(self, puzzle):
         self.puzzle = puzzle
@@ -42,3 +45,10 @@ class Game:  # tile-based game, either popils or megalit
 #             move(UP, player)
 #     elif target != HARD:
 #         move(vector, player)
+
+# Place gadgets to construct puzzle
+initSatisfiabilityClauses()
+
+# Create bottom 3 rows & top 2 rows of puzzle
+# Remaining area, including frame, is made of HARD blocks
+state = initSpecialAreas()
