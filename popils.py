@@ -1,15 +1,14 @@
-from game import Game
+from game import Game, Player, Block
 from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE
 
 # popils-specific block color-coding
-PLAYER = (255, 0, 0)  # red
 LADDER = (0, 0, 255)  # blue
 HARD = (210, 180, 140)  # tan
 SOFT = (128, 128, 128)  # gray
 PRINCESS = (250, 20, 200)  # pink
 SUPPORT = (255, 255, 255)  # white
 
-#popils-specific gadgets
+# popils-specific gadgets
 SUB_GADGET_NEGATED = [LADDER, LADDER, SUPPORT, LADDER]
 SUB_GADGET_ABSENT = [LADDER, SUPPORT, LADDER, SUPPORT]
 SUB_GADGET_PRESENT = [SUPPORT, LADDER, LADDER, SUPPORT]
@@ -22,6 +21,7 @@ GADGET_HEIGHT = 6
 class Popils(Game):
     def __init__(self, puzzle):
         super(puzzle)
+        self.player = Player([1,1])
 
     def reduce(self, puzzle):
         #set dimensions of grid
@@ -37,9 +37,8 @@ class Popils(Game):
         
         return grid
 
-    #reduce helpers
+    # reduce helper function: create static areas of the grid that depend only on instance size
     def build_frame(self):
-        player_row = player_col = 1
         assignment_row = 2
         transition_col = self.num_cols - 2  # Column with path (ladders) between areas
         # Initially set entire zone to indestructible blocks
@@ -48,11 +47,10 @@ class Popils(Game):
         grid = [[HARD] * self.num_cols for row in range(self.num_rows)]
 
         # Starting zone
-        grid[player_row][player_col] = PLAYER
-        for i in range(player_col + 1, transition_col):
-            grid[player_row][i] = SUPPORT
-        grid[player_row][transition_col] = LADDER
-        for i in range(player_col, transition_col - 1, 2):
+        for i in range(self.player.col + 1, transition_col):
+            grid[self.player.row][i] = SUPPORT
+        grid[self.player.row][transition_col] = LADDER
+        for i in range(self.player.col, transition_col - 1, 2):
             grid[assignment_row][i] = SOFT
         grid[assignment_row][transition_col] = LADDER
 
@@ -64,6 +62,7 @@ class Popils(Game):
         # Send back partially-built level
         return grid
 
+    # reduce helper function
     def build_clauses(self, grid, puzzle):
         row_pointer = 3
 
@@ -73,6 +72,7 @@ class Popils(Game):
             self.place_gadget(puzzle.expanded_form[clause], row_pointer)
             row_pointer += GADGET_HEIGHT
 
+    # reduce helper function
     def place_gadget(self, grid, variable_states, bottom_row):
         start_col = 2
         transition_col = self.num_cols - 2  # Column with path (ladders) between areas
@@ -96,16 +96,15 @@ class Popils(Game):
             self.place_sub_gadget(
                 variable_states[var_index], bottom_row + 1, 2 * var_index + 1)
 
-    # Clone sub-gadget ladder structure
-
+    # reduce helper function: place a part of a gadget corresponding to the state of 1 variable
     def place_sub_gadget(self, grid, var_state, bottom_row, col):
         for i in range(SUB_GADGET_HEIGHT):
             grid[bottom_row + i][col] = SUB_GADGETS[var_state + 1][i]
-    #end reduce helpers
 
+    # compute the popils-specific solving move sequence for the given 3SAT instance
     def generate_solution(self, puzzle):
         steps = []
-        # set variables
+        # make variable assignments
         for truthiness in puzzle.solution:
             if truthiness == 1:
                 steps.append(UP)
@@ -121,36 +120,35 @@ class Popils(Game):
             closest = max([abs(var) for var in satisfied])
             lateral_blocks = 2 * ( puzzle.num_vars + 1 - closest)
 
-            # Move to nearest viable ladder
+            # move to nearest viable ladder
             for i in range(lateral_blocks):
                 steps.append(LEFT)
-            #climb to next clause
+            # climb to next clause
             steps.append(UP)
             steps.append(UP)
-            #go back to the main ladder
+            # go back to the main ladder
             for i in range(lateral_blocks):
                 steps.append(RIGHT)
-            #get in position to traverse the next clause
+            # get in position to traverse the next clause
             steps.append(UP)
 
-        # Climb to princess
+        # climb to princess!
         steps.append(UP)
         steps.append(UP)
         steps.append(UP)
 
         return steps
 
-    #command is one of the common vectors imported from common_constants
+    # command is one of the common vectors imported from common_constants
     def update(self, command):
         pass
     
-    #update helpers
+    # update helpers
     def move(self, vector, player):
         pass
 
     def force(self, vector, player):
         pass
-    #end update helpers
 
 # If player walks off the top of a ladder, make them fall
 # while (state[player.row - 1][player.col] == SUPPORT and player.occupying == SUPPORT):
