@@ -1,14 +1,14 @@
 import argparse
 import pygame
-from puzzle import Puzzle
+from puzzle import Puzzle, DEFAULT_3SAT
 from popils import Popils
 from megalit import Megalit
 from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE
-from game import DEFAULT_3SAT
 
 # Measured in px
 WINDOW_WIDTH = 500
 WINDOW_HEIGHT = 1000
+
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -22,6 +22,7 @@ def parse_arguments():
     parser.add_argument('-m', '--megalit', action='store_true',
                         help='reduce 3SAT to Megalit instead of Popils')
     return parser.parse_args()
+
 
 # make initialization calls to the graphics library pygame
 def init_pygame(window_title):
@@ -37,29 +38,35 @@ def init_pygame(window_title):
 
     return screen, clock
 
+
 # graphical helper function: return a rectangle where the specified block in the grid should be drawn
 def grid_to_px(row, col):
-     # Side length of game blocks (which are all squares)
+    # Side length of game blocks (which are all squares)
     block_dim = min(WINDOW_HEIGHT / game.num_rows,
                     WINDOW_WIDTH / game.num_cols)
 
     return [col * block_dim + 1, (game.num_rows - row - 1) * block_dim + 1, block_dim - 1, block_dim - 1]
+
 
 # Render the designated portion of the display
 def draw(screen, game):
     rectangles = []
 
     # draw blocks from the game grid if they are in the updated zone
-    for row in range(game.altered_rows):
-        for col in range(game.altered_cols):
+    start = 0
+    end = 1
+    for row in range(game.altered_rows[start], game.altered_rows[end]):
+        for col in range(game.altered_cols[start], game.altered_rows[end]):
             rectangles.append(pygame.draw.rect(
                 screen, game.grid[row][col].color, grid_to_px(row, col)))
-    
+
     # draw player
-    rectangles.append(pygame.draw.rect(screen, game.player.color, grid_to_px(game.player.row, game.player.col)))
+    rectangles.append(pygame.draw.rect(screen, game.player.color,
+                      grid_to_px(game.player.row, game.player.col)))
 
     pygame.display.update(rectangles)  # update the changed areas
-    game.altered_rows = game.altered_cols = [0, 0] # reset bounds to indicate drawing is complete
+    # reset bounds to indicate drawing is complete
+    game.altered_rows = game.altered_cols = [0, 0]
 
 
 # ----- Main program code begins here -----
@@ -72,29 +79,33 @@ args = parse_arguments()
 if args.filename:
     with open(args.filename) as file:
         raw_input = file.readline()
+elif args.instance:
+    raw_input = " ".join(args.instance)
 else:
-    raw_input = args.instance
+    raw_input = ""
 
 # create game instance of the correct type
-game = Megalit(Puzzle(raw_input)) if args.megalit else Popils(Puzzle(raw_input))
+game = Megalit(Puzzle(raw_input)) if args.megalit else Popils(
+    Puzzle(raw_input))
 
 # create render surface and game clock, set window title
-screen, clock = init_pygame('Megalit Reduction' if args.megalit else 'Popils Reduction')
+screen, clock = init_pygame(
+    'Megalit Reduction' if args.megalit else 'Popils Reduction')
 
-# initial gamestate render
+# render initial gamestate
 draw(screen, game)
 
 # game loop
 while not game.complete:
     # update gamestate
-    if len(game.solution) != 0: # autosolver mode
+    if len(game.solution) != 0:  # autosolver mode
         game.update(game.solution[game.solution_step])
         game.solution_step += 1
-    else: # user input mode
+    else:  # user input mode
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game.complete = True
-            elif event.type == pygame.KEYUP: # pass basic directional inputs to game
+            elif event.type == pygame.KEYUP:  # pass basic directional inputs to game
                 if event.key == pygame.K_LEFT:
                     game.update(LEFT)
                 elif event.key == pygame.K_RIGHT:
