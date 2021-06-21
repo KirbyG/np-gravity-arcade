@@ -36,7 +36,6 @@ class Puzzle:
             print(
                 "WARNING: Malformed input. Default 3SAT instance has been used instead.")
             array_form = [int(el) for el in str.split(DEFAULT_3SAT)]
-        print(array_form)
 
         # Truncate input if there are variables that don't form a full clause
         extra_inputs = len(array_form) % VARS_PER_CLAUSE
@@ -48,7 +47,6 @@ class Puzzle:
         # 2D representation of 3SAT problem (clauses contain vars)
         nested_form = [[array_form[VARS_PER_CLAUSE * i + j]
                         for j in range(VARS_PER_CLAUSE)] for i in range(int(len(array_form) / VARS_PER_CLAUSE))]
-        print(nested_form)
         return self.convertToReducedForm(array_form, nested_form)
 
     def convertToReducedForm(self, array_form, nested_form):

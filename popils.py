@@ -19,6 +19,8 @@ class Popils(Game):
         self.puzzle = puzzle
         self.player = Player([1, 1])
         super().__init__(puzzle)
+        self.altered_rows = [0, self.num_rows - 1]
+        self.altered_cols = [0, self.num_cols - 1]
 
     def reduce(self, puzzle):
         # set dimensions of grid
@@ -98,7 +100,6 @@ class Popils(Game):
     # reduce helper function: place a part of a gadget corresponding to the state of 1 variable
     def place_sub_gadget(self, grid, var_state, bottom_row, col):
         for i in range(SUB_GADGET_HEIGHT):
-            print(var_state + 1, i)
             grid[bottom_row + i][col] = Block(SUB_GADGETS[var_state + 1][i])
 
     # compute the popils-specific solving move sequence for the given 3SAT instance

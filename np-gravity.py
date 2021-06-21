@@ -55,8 +55,8 @@ def draw(screen, game):
     # draw blocks from the game grid if they are in the updated zone
     start = 0
     end = 1
-    for row in range(game.altered_rows[start], game.altered_rows[end]):
-        for col in range(game.altered_cols[start], game.altered_rows[end]):
+    for row in range(game.altered_rows[start], game.altered_rows[end] + 1):
+        for col in range(game.altered_cols[start], game.altered_cols[end] + 1):
             rectangles.append(pygame.draw.rect(
                 screen, game.grid[row][col].color, grid_to_px(row, col)))
 
@@ -66,7 +66,8 @@ def draw(screen, game):
 
     pygame.display.update(rectangles)  # update the changed areas
     # reset bounds to indicate drawing is complete
-    game.altered_rows = game.altered_cols = [0, 0]
+    game.altered_rows = [0, 0]
+    game.altered_cols = [0, 0]
 
 
 # ----- Main program code begins here -----
@@ -87,9 +88,7 @@ else:
 # create game instance of the correct type
 puzzle = Puzzle(raw_input)
 game = Megalit(Puzzle(raw_input)) if args.megalit else Popils(puzzle)
-'''print(repr(game))
-print(repr(puzzle))
-print(raw_input)'''
+print(repr(game))
 # create render surface and game clock, set window title
 screen, clock = init_pygame(
     'Megalit Reduction' if args.megalit else 'Popils Reduction')
