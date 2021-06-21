@@ -18,29 +18,32 @@ SUB_GADGETS = [SUB_GADGET_NEGATED, SUB_GADGET_ABSENT, SUB_GADGET_PRESENT]
 SUB_GADGET_HEIGHT = 4
 GADGET_HEIGHT = 6
 
+
 class Popils(Game):
     def __init__(self, puzzle):
-        super(puzzle)
-        self.player = Player([1,1])
+        self.puzzle = puzzle
+        self.player = Player([1, 1])
+        super().__init__(puzzle)
 
     def reduce(self, puzzle):
-        #set dimensions of grid
+        # set dimensions of grid
         self.num_rows = 6 * (puzzle.num_clauses + 1)
-        self.num_cols = 3 + (2 * puzzle.num_unique_vars)
+        self.num_cols = 3 + (2 * puzzle.num_vars)
 
         # Create bottom 3 rows & top 2 rows of puzzle
         # Remaining area, including frame, is made of HARD blocks
         grid = self.build_frame()
 
-        #Place gadgets to construct puzzle
+        # Place gadgets to construct puzzle
         self.build_clauses(grid, puzzle)
-        
+
         return grid
 
     # reduce helper function: create static areas of the grid that depend only on instance size
     def build_frame(self):
         assignment_row = 2
-        transition_col = self.num_cols - 2  # Column with path (ladders) between areas
+        # Column with path (ladders) between areas
+        transition_col = self.num_cols - 2
         # Initially set entire zone to indestructible blocks
         # Using this "*" notation twice doesn't produce expected results
         #   because Python just makes pointers to original tuple
@@ -67,7 +70,7 @@ class Popils(Game):
         row_pointer = 3
 
         for clause in range(puzzle.num_clauses):
-            
+
             # Fill in gadget region for each variable for current tuple
             self.place_gadget(puzzle.expanded_form[clause], row_pointer)
             row_pointer += GADGET_HEIGHT
@@ -75,7 +78,8 @@ class Popils(Game):
     # reduce helper function
     def place_gadget(self, grid, variable_states, bottom_row):
         start_col = 2
-        transition_col = self.num_cols - 2  # Column with path (ladders) between areas
+        # Column with path (ladders) between areas
+        transition_col = self.num_cols - 2
 
         # Create transition to next zone
         grid[bottom_row][transition_col] = LADDER
@@ -116,9 +120,10 @@ class Popils(Game):
             steps.append(UP)
             steps.append(UP)
 
-            satisfied = puzzle.satisfied_vars(puzzle.three_sat[clause], puzzle.solution)
+            satisfied = puzzle.satisfied_vars(
+                puzzle.three_sat[clause], puzzle.solution)
             closest = max([abs(var) for var in satisfied])
-            lateral_blocks = 2 * ( puzzle.num_vars + 1 - closest)
+            lateral_blocks = 2 * (puzzle.num_vars + 1 - closest)
 
             # move to nearest viable ladder
             for i in range(lateral_blocks):
@@ -142,7 +147,7 @@ class Popils(Game):
     # command is one of the common vectors imported from common_constants
     def update(self, command):
         pass
-    
+
     # update helpers
     def move(self, vector, player):
         pass
@@ -184,4 +189,4 @@ class Popils(Game):
 #             move(UP, player)
 #     elif target != HARD:
 #         move(vector, player)
-# 
+#
