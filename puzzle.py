@@ -17,9 +17,9 @@ class Puzzle:
         # TODO Doesn't do anything yet
         return self.three_sat
 
-    def pretty_print(self):
-        print("CNF form of 3SAT: " + " ^ ".join(
-            ["(" + " V ".join(clause) + ")" for clause in self.three_sat]))
+    def __repr__(self):
+        return "CNF form of 3SAT: " + " ^ ".join(
+            ["(" + " V ".join(clause) + ")" for clause in self.three_sat])
 
     def parse(self, raw_input):
         # No 3SAT instance was provided on the command line

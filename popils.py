@@ -67,7 +67,7 @@ class Popils(Game):
         for clause in range(puzzle.num_clauses):
 
             # Fill in gadget region for each variable for current tuple
-            self.place_gadget(puzzle.expanded_form[clause], row_pointer)
+            self.place_gadget(grid, puzzle.expanded_form[clause], row_pointer)
             row_pointer += GADGET_HEIGHT
 
     # reduce helper function
