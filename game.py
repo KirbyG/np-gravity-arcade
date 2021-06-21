@@ -1,54 +1,48 @@
 from abc import ABC, abstractmethod
+from common_constants import UP, DOWN, LEFT, RIGHT, ZERO, COLORS
 
+# tile-based game, either popils or megalit
+class Game(ABC):
+    # subclasses must expose a method to generate a solving move sequence
+    @abstractmethod
+    def solve(self, puzzle):
+        pass
 
-class Game:  # tile-based game, either popils or megalit
+    # subclasses must expose a method to reduce 3SAT into a game level
+    @abstractmethod
+    def reduce(self, puzzle):
+        pass
+
+    # returns the bounding box surrounding affected game-grid elements
+    @abstractmethod
+    def update(self, command):
+        pass
+
+    # compute and store the reduction and solving move sequence
     def __init__(self, puzzle):
-        self.puzzle = puzzle
-        self.num_rows = 6 * (puzzle.num_clauses + 1)
-        self.num_cols = 3 + (2 * puzzle.num_unique_vars)
+        self.complete = False
+        self.altered_rows = self.altered_cols = [0, 0]
+        self.grid = self.reduce(puzzle)
+        self.solution = self.solve(puzzle)
+        self.solution_step = 0
 
+    def __repr__(self):
+        result = ''
+        for row in self.grid:
+            for block in row:
+                result += block.type + ' '
+            result += '\n'
+        return result
 
-# If player walks off the top of a ladder, make them fall
-        # while (state[player.row - 1][player.col] == SUPPORT and player.occupying == SUPPORT):
-        #     game.force(DOWN, player)
+# this class will populate the game grid. currently this is just a wrapper for a color
+class Block():
+    def __init__(self, type):
+        self.color = COLORS[type]
+        self.type = type
 
-# TODO make abstract here, implement in Popils/Megalit
-# Change player's coordinates and refresh the displayed game grid
-# def move(vector, player):
-#     vertical = 0
-#     horizontal = 1
-
-#     state[player.row][player.col] = player.occupying
-#     player.row += vector[vertical]
-#     player.col += vector[horizontal]
-#     player.occupying = state[player.row][player.col]
-#     state[player.row][player.col] = PLAYER
-#     draw(min(player.row, player.row - vector[vertical]), max(player.row, player.row - vector[vertical]),
-#          min(player.col, player.col - vector[horizontal]), max(player.col, player.col - vector[horizontal]))
-
-
-# # Wrapper for move() that enables auto-solving
-# def force(vector, player):
-#     global state
-#     vertical = 0
-#     horizontal = 1
-#     target = state[player.row + vector[vertical]
-#                    ][player.col + vector[horizontal]]
-
-#     if vector == UP:
-#         if target == SOFT:
-#             for falling_row in range(player.row + 1, ROWS - 1):
-#                 state[falling_row][player.col] = state[falling_row + 1][player.col]
-#             state[ROWS - 1][player.col] = HARD
-#             draw(player.row + 1, ROWS - 1, player.row, player.col)
-#         elif player.occupying == LADDER and (target != HARD):
-#             move(UP, player)
-#     elif target != HARD:
-#         move(vector, player)
-
-# Place gadgets to construct puzzle
-initSatisfiabilityClauses()
-
-# Create bottom 3 rows & top 2 rows of puzzle
-# Remaining area, including frame, is made of HARD blocks
-state = initSpecialAreas()
+# wrapper class to track player position
+class Player():
+    def __init__(self, pos):
+        self.row = pos[0]
+        self.col = pos[1]
+        self.color = (255, 0, 0)  # red

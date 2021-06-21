@@ -1,20 +1,16 @@
 import argparse
 import pygame
-from puzzle import Puzzle
+from puzzle import Puzzle, DEFAULT_3SAT
 from popils import Popils
 from megalit import Megalit
-from popils_constants import Player
-import common_constants as const
-
-# Default 3SAT instance. Will be ignored if user provides alternative
-DEFAULT_3SAT = '1 2 3 -2 -3 4 1 -3 6 -1 4 5 2 -4 -6'
+from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE
 
 # Measured in px
 WINDOW_WIDTH = 500
 WINDOW_HEIGHT = 1000
 
 
-def parseArguments():
+def parse_arguments():
     parser = argparse.ArgumentParser()
     input_type = parser.add_mutually_exclusive_group()
     input_type.add_argument('-i', metavar='VAR', dest='instance', nargs='*',
@@ -28,67 +24,12 @@ def parseArguments():
     return parser.parse_args()
 
 
-def convertToCanonicalForm(args):
-    # Read in problem from stdin or file
-    if args.instance:
-        raw_input = " ".join(args.instance)
-    elif args.filename:
-        with open(args.filename) as file:
-            raw_input = file.readline()
-    else:
-        raw_input = DEFAULT_3SAT
-
-    # Attempt to convert input to a list of integers
-    try:
-        array_form = [int(el) for el in str.split(raw_input)]
-    except:
-        print("WARNING: Malformed input. Default 3SAT instance has been used instead.")
-        array_form = [int(el) for el in str.split(DEFAULT_3SAT)]
-
-    # Truncate input if there are variables that don't form a full clause
-    extra_inputs = len(array_form) % const.VARS_PER_CLAUSE
-    array_form = array_form[:-extra_inputs]
-    if extra_inputs != 0:
-        print("WARNING: 3SAT requires tuples of exactly size 3. Input has been truncated appropriately.")
-
-    NUM_TUPLES = int(len(array_form) / 3)
-
-    # 2D representation of 3SAT problem (clauses contain vars)
-    nested_form = [[array_form[const.VARS_PER_CLAUSE * i + j]
-                    for j in range(const.VARS_PER_CLAUSE)] for i in range(NUM_TUPLES)]
-    reduced_form = convertToReducedForm(raw_input, nested_form)
-    return reduced_form
-
-
-def convertToReducedForm(raw_input, nested_form):
-    # Relabel variables to smallest possible numbers
-    var_set = {abs(var) for var in raw_input}
-    num_unique_vars = len(var_set)
-    for index in range(num_unique_vars):
-        if not index in var_set:
-            to_relabel = min([elem for elem in var_set if elem <= index])
-            var_set.discard(to_relabel)
-            var_set.add(index)
-            nested_form = [[index if var == to_relabel else var for var in clause]
-                           for clause in nested_form]
-
-    # Remove malformed clauses with duplicate vars
-    nested_form = [clause for clause in nested_form if len(
-        {abs(var) for var in clause}) == const.VARS_PER_CLAUSE]
-
-    return nested_form
-
-
-def printThreeSat(three_sat):
-    print("CNF form of 3SAT: " + " ^ ".join(
-        ["(" + " V ".join(clause) + ")" for clause in three_sat]))
-
-
-def setUpPygame():
+# make initialization calls to the graphics library pygame
+def init_pygame(window_title):
     # Initialize pygame submodules
     pygame.init()
     # Set window title
-    pygame.display.set_caption('NP-Gravity')
+    pygame.display.set_caption(window_title)
     # Initialize drawing surface
     window_size = [WINDOW_WIDTH, WINDOW_HEIGHT]
     screen = pygame.display.set_mode(window_size)
@@ -98,81 +39,82 @@ def setUpPygame():
     return screen, clock
 
 
-# Render the designated portion of the display
-def draw(bounds, screen, game, player):
-    rectangles = []
-    min_row = bounds[0]
-    max_row = bounds[1]
-    min_col = bounds[2]
-    max_col = bounds[3]
-
+# graphical helper function: return a rectangle where the specified block in the grid should be drawn
+def grid_to_px(row, col):
     # Side length of game blocks (which are all squares)
     block_dim = min(WINDOW_HEIGHT / game.num_rows,
                     WINDOW_WIDTH / game.num_cols)
 
-    for row in range(min_row, max_row + 1):
-        # Create a rect for each block according to its saved state/color
-        for col in range(min_col, max_col + 1):
-            rect_corners = [
-                col * block_dim + 1, (game.num_rows - row - 1) * block_dim + 1, block_dim - 1, block_dim - 1]
+    return [col * block_dim + 1, (game.num_rows - row - 1) * block_dim + 1, block_dim - 1, block_dim - 1]
+
+
+# Render the designated portion of the display
+def draw(screen, game):
+    rectangles = []
+
+    # draw blocks from the game grid if they are in the updated zone
+    start = 0
+    end = 1
+    for row in range(game.altered_rows[start], game.altered_rows[end] + 1):
+        for col in range(game.altered_cols[start], game.altered_cols[end] + 1):
             rectangles.append(pygame.draw.rect(
-                screen, game.state[row][col].color, rect_corners))
-    player_loc = [
-        player.col * block_dim + 1, (game.num_rows - player.row - 1) * block_dim + 1, block_dim - 1, block_dim - 1]
-    rectangles.append(pygame.draw.rect(screen, player.color, player_loc))
-    pygame.display.update(rectangles)  # Update the changed areas
+                screen, game.grid[row][col].color, grid_to_px(row, col)))
+
+    # draw player
+    rectangles.append(pygame.draw.rect(screen, game.player.color,
+                      grid_to_px(game.player.row, game.player.col)))
+
+    pygame.display.update(rectangles)  # update the changed areas
+    # reset bounds to indicate drawing is complete
+    game.altered_rows = [0, 0]
+    game.altered_cols = [0, 0]
 
 
 # ----- Main program code begins here -----
 print()  # Give separation from pygame message
 
 # Read in 3SAT problem
-args = parseArguments()
+args = parse_arguments()
 
-# Put 3SAT instance into standard format
-canonical_form = convertToCanonicalForm(args)
-
-# Print pretty version of 3SAT in conjunctive normal form
-printThreeSat(canonical_form)
-
-# Create render surface and synchronization clock
-screen, clock = setUpPygame()
-
-# Solve the given 3SAT instance
-puzzle = Puzzle(canonical_form)
-
-# Instantiate game representation
-if args.megalit:
-    game = Megalit(puzzle)
+# set raw instance input data from command line or file
+if args.filename:
+    with open(args.filename) as file:
+        raw_input = file.readline()
+elif args.instance:
+    raw_input = " ".join(args.instance)
 else:
-    game = Popils(puzzle)
+    raw_input = DEFAULT_3SAT
 
-# Initialize player position
-player = Player()
+# create game instance of the correct type
+puzzle = Puzzle(raw_input)
+game = Megalit(Puzzle(raw_input)) if args.megalit else Popils(puzzle)
 
-# Render initial gamestate on screen
-window_boundaries = [0, game.num_rows - 1, 0, game.num_cols - 1]
-draw(window_boundaries, screen, game, player)
+# create render surface and game clock, set window title
+screen, clock = init_pygame(
+    'Megalit Reduction' if args.megalit else 'Popils Reduction')
 
-# Main game loop
+# render initial gamestate
+draw(screen, game)
+
+# game loop
 while not game.complete:
-    altered_region = [0, 0, 0, 0]
-    if len(game.solution) != 0:
-        game.force(game.solution[game.solution_step], player)
+    # update gamestate
+    if args.solver:  # autosolver mode
+        game.update(game.solution[game.solution_step])
         game.solution_step += 1
-    else:
+    else:  # user input mode
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
                 game.complete = True
-            else:
-                if event.type == pygame.KEYUP:
-                    if event.key == pygame.K_LEFT:
-                        altered_region = game.force(const.LEFT, player)
-                    elif event.key == pygame.K_RIGHT:
-                        altered_region = game.force(const.RIGHT, player)
-                    elif event.key == pygame.K_UP:
-                        altered_region = game.force(const.UP, player)
-                    elif event.key == pygame.K_DOWN:
-                        altered_region = game.force(const.DOWN, player)
-    draw(altered_region, screen, game, player)
-    clock.tick(15)  # Cap framerate at 15 FPS
+            elif event.type == pygame.KEYUP:  # pass basic directional inputs to game
+                if event.key == pygame.K_LEFT:
+                    game.update(LEFT)
+                elif event.key == pygame.K_RIGHT:
+                    game.update(RIGHT)
+                elif event.key == pygame.K_UP:
+                    game.update(UP)
+                elif event.key == pygame.K_DOWN:
+                    game.update(DOWN)
+    # iterate game display with framerate capped at 15 FPS
+    draw(screen, game)
+    clock.tick(15)
