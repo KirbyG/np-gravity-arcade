@@ -93,12 +93,13 @@ class Popils(Game):
         # Place 'ladder's according to gadget structure
         for var_index in range(len(variable_states)):
             self.place_sub_gadget(
-                variable_states[var_index], bottom_row + 1, 2 * var_index + 1)
+                grid, variable_states[var_index], bottom_row + 1, 2 * var_index + 1)
 
     # reduce helper function: place a part of a gadget corresponding to the state of 1 variable
     def place_sub_gadget(self, grid, var_state, bottom_row, col):
         for i in range(SUB_GADGET_HEIGHT):
-            grid[bottom_row + i][col] = SUB_GADGETS[var_state + 1][i]
+            print(var_state + 1, i)
+            grid[bottom_row + i][col] = Block(SUB_GADGETS[var_state + 1][i])
 
     # compute the popils-specific solving move sequence for the given 3SAT instance
     def solve(self, puzzle):

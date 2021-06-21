@@ -8,13 +8,10 @@ class Puzzle:
     def __init__(self, raw_instance):
         self.three_sat = self.parse(raw_instance)
         self.num_clauses = len(self.three_sat)
-        self.num_vars = len({abs(var)
-                            for var in [clause for clause in self.three_sat]})
         self.expanded_form = self.expand()
         self.solution = self.find_solution()
 
     def expand(self):
-        # TODO Doesn't do anything yet
         return self.three_sat
 
     def __repr__(self):
@@ -22,10 +19,6 @@ class Puzzle:
             ["(" + " V ".join(clause) + ")" for clause in self.three_sat])
 
     def parse(self, raw_input):
-        # No 3SAT instance was provided on the command line
-        if raw_input == "":
-            raw_input = DEFAULT_3SAT
-
         # Attempt to convert input to a list of integers
         try:
             array_form = [int(el) for el in str.split(raw_input)]
@@ -33,24 +26,26 @@ class Puzzle:
             print(
                 "WARNING: Malformed input. Default 3SAT instance has been used instead.")
             array_form = [int(el) for el in str.split(DEFAULT_3SAT)]
+        print(array_form)
 
         # Truncate input if there are variables that don't form a full clause
         extra_inputs = len(array_form) % VARS_PER_CLAUSE
-        array_form = array_form[:-extra_inputs]
+        array_form = array_form[:len(array_form)-extra_inputs]
         if extra_inputs != 0:
             print(
                 "WARNING: 3SAT requires tuples of exactly size 3. Input has been truncated appropriately.")
 
         # 2D representation of 3SAT problem (clauses contain vars)
         nested_form = [[array_form[VARS_PER_CLAUSE * i + j]
-                        for j in range(VARS_PER_CLAUSE)] for i in range(len(array_form))]
+                        for j in range(VARS_PER_CLAUSE)] for i in range(int(len(array_form) / VARS_PER_CLAUSE))]
+        print(nested_form)
         return self.convertToReducedForm(array_form, nested_form)
 
     def convertToReducedForm(self, array_form, nested_form):
         # Relabel variables to smallest possible numbers
         var_set = {abs(var) for var in array_form}
-        num_unique_vars = len(var_set)
-        for index in range(num_unique_vars):
+        self.num_vars = len(var_set)
+        for index in range(1, self.num_vars + 1):
             if not index in var_set:
                 to_relabel = min([elem for elem in var_set if elem <= index])
                 var_set.discard(to_relabel)
@@ -83,7 +78,7 @@ class Puzzle:
         return []
 
     # purely mathematical helper function mapping -R -> -1, R -> 1
-    def sign(self, num):
+    def _sign(self, num):
         return int(abs(num) / num)
 
     # given a clause and variable assignment, return the satisfied variables in that clause

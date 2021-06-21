@@ -82,13 +82,14 @@ if args.filename:
 elif args.instance:
     raw_input = " ".join(args.instance)
 else:
-    raw_input = ""
+    raw_input = DEFAULT_3SAT
 
 # create game instance of the correct type
 puzzle = Puzzle(raw_input)
 game = Megalit(Puzzle(raw_input)) if args.megalit else Popils(puzzle)
-print(repr(game))
+'''print(repr(game))
 print(repr(puzzle))
+print(raw_input)'''
 # create render surface and game clock, set window title
 screen, clock = init_pygame(
     'Megalit Reduction' if args.megalit else 'Popils Reduction')
