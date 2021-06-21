@@ -12,7 +12,17 @@ class Puzzle:
         self.solution = self.find_solution()
 
     def expand(self):
-        return self.three_sat
+        expansion = []
+        for i, clause in enumerate(self.three_sat):
+            expansion.append([])
+            for var in range(self.num_vars):
+                if var + 1 in clause:
+                    expansion[i].append(1)
+                elif -(var + 1) in clause:
+                    expansion[i].append(-1)
+                else:
+                    expansion[i].append(0)
+        return expansion
 
     def __repr__(self):
         return "CNF form of 3SAT: " + " ^ ".join(
