@@ -1,17 +1,12 @@
 from game import Game, Player, Block
-from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE
+from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS
 
-# popils-specific block color-coding
-LADDER = (0, 0, 255)  # blue
-HARD = (210, 180, 140)  # tan
-SOFT = (128, 128, 128)  # gray
-PRINCESS = (250, 20, 200)  # pink
-SUPPORT = (255, 255, 255)  # white
+
 
 # popils-specific gadgets
-SUB_GADGET_NEGATED = [LADDER, LADDER, SUPPORT, LADDER]
-SUB_GADGET_ABSENT = [LADDER, SUPPORT, LADDER, SUPPORT]
-SUB_GADGET_PRESENT = [SUPPORT, LADDER, LADDER, SUPPORT]
+SUB_GADGET_NEGATED = ['ladder', 'ladder', 'support', 'ladder']
+SUB_GADGET_ABSENT = ['ladder', 'support', 'ladder', 'support']
+SUB_GADGET_PRESENT = ['support', 'ladder', 'ladder', 'support']
 SUB_GADGETS = [SUB_GADGET_NEGATED, SUB_GADGET_ABSENT, SUB_GADGET_PRESENT]
 
 # popils-specific gadget sizes
@@ -31,7 +26,7 @@ class Popils(Game):
         self.num_cols = 3 + (2 * puzzle.num_vars)
 
         # Create bottom 3 rows & top 2 rows of puzzle
-        # Remaining area, including frame, is made of HARD blocks
+        # Remaining area, including frame, is made of 'hard' blocks
         grid = self.build_frame()
 
         # Place gadgets to construct puzzle
@@ -42,25 +37,25 @@ class Popils(Game):
     # reduce helper function: create static areas of the grid that depend only on instance size
     def build_frame(self):
         assignment_row = 2
-        # Column with path (ladders) between areas
+        # Column with path ('ladder's) between areas
         transition_col = self.num_cols - 2
         # Initially set entire zone to indestructible blocks
         # Using this "*" notation twice doesn't produce expected results
         #   because Python just makes pointers to original tuple
-        grid = [[Block(HARD)] * self.num_cols for row in range(self.num_rows)]
+        grid = [[Block('hard')] * self.num_cols for row in range(self.num_rows)]
 
         # Starting zone
         for i in range(self.player.col + 1, transition_col):
-            grid[self.player.row][i] = Block(SUPPORT)
-        grid[self.player.row][transition_col] = Block(LADDER)
+            grid[self.player.row][i] = Block('support')
+        grid[self.player.row][transition_col] = Block('ladder')
         for i in range(self.player.col, transition_col - 1, 2):
-            grid[assignment_row][i] = SOFT
-        grid[assignment_row][transition_col] = LADDER
+            grid[assignment_row][i] = Block('soft')
+        grid[assignment_row][transition_col] = Block('ladder')
 
         # Ending zone
-        grid[self.num_rows - 2][transition_col] = PRINCESS
+        grid[self.num_rows - 2][transition_col] = Block('princess')
         # Stop princess from walking
-        grid[self.num_rows - 3][transition_col] = SOFT
+        grid[self.num_rows - 3][transition_col] = Block('soft')
 
         # Send back partially-built level
         return grid
@@ -78,24 +73,24 @@ class Popils(Game):
     # reduce helper function
     def place_gadget(self, grid, variable_states, bottom_row):
         start_col = 2
-        # Column with path (ladders) between areas
+        # Column with path ('ladder's) between areas
         transition_col = self.num_cols - 2
 
         # Create transition to next zone
-        grid[bottom_row][transition_col] = LADDER
-        grid[bottom_row + 1][transition_col] = SUPPORT
-        # state[bottom_row + 2][transition_col] is already HARD
-        grid[bottom_row + 3][transition_col] = LADDER
-        grid[bottom_row + 4][transition_col] = LADDER
-        grid[bottom_row + 5][transition_col] = LADDER
+        grid[bottom_row][transition_col] = Block('ladder')
+        grid[bottom_row + 1][transition_col] = Block('support')
+        # state[bottom_row + 2][transition_col] is already 'hard'
+        grid[bottom_row + 3][transition_col] = Block('ladder')
+        grid[bottom_row + 4][transition_col] = Block('ladder')
+        grid[bottom_row + 5][transition_col] = Block('ladder')
 
         # Carve out walkable area, skipping gadget columns
         for i in range(start_col, transition_col, 2):
-            grid[bottom_row + 1][i] = SUPPORT
-            grid[bottom_row + 3][i] = SUPPORT
-            grid[bottom_row + 4][i] = SUPPORT
+            grid[bottom_row + 1][i] = Block('support')
+            grid[bottom_row + 3][i] = Block('support')
+            grid[bottom_row + 4][i] = Block('support')
 
-        # Place ladders according to gadget structure
+        # Place 'ladder's according to gadget structure
         for var_index in range(len(variable_states)):
             self.place_sub_gadget(
                 variable_states[var_index], bottom_row + 1, 2 * var_index + 1)
@@ -125,13 +120,13 @@ class Popils(Game):
             closest = max([abs(var) for var in satisfied])
             lateral_blocks = 2 * (puzzle.num_vars + 1 - closest)
 
-            # move to nearest viable ladder
+            # move to nearest viable 'ladder'
             for i in range(lateral_blocks):
                 steps.append(LEFT)
             # climb to next clause
             steps.append(UP)
             steps.append(UP)
-            # go back to the main ladder
+            # go back to the main 'ladder'
             for i in range(lateral_blocks):
                 steps.append(RIGHT)
             # get in position to traverse the next clause
@@ -155,8 +150,8 @@ class Popils(Game):
     def force(self, vector, player):
         pass
 
-# If player walks off the top of a ladder, make them fall
-# while (state[player.row - 1][player.col] == SUPPORT and player.occupying == SUPPORT):
+# If player walks off the top of a 'ladder', make them fall
+# while (state[player.row - 1][player.col] == 'support' and player.occupying == 'support'):
 #     game.force(DOWN, player)
 
 # Change player's coordinates and refresh the displayed game grid
@@ -180,13 +175,13 @@ class Popils(Game):
 #     target = state[player.row + vector[vertical]
 #                    ][player.col + vector[horizontal]]
 #     if vector == UP:
-#         if target == SOFT:
+#         if target == 'soft':
 #             for falling_row in range(player.row + 1, ROWS - 1):
 #                 state[falling_row][player.col] = state[falling_row + 1][player.col]
-#             state[ROWS - 1][player.col] = HARD
+#             state[ROWS - 1][player.col] = 'hard'
 #             draw(player.row + 1, ROWS - 1, player.row, player.col)
-#         elif player.occupying == LADDER and (target != HARD):
+#         elif player.occupying == 'ladder' and (target != 'hard'):
 #             move(UP, player)
-#     elif target != HARD:
+#     elif target != 'hard':
 #         move(vector, player)
 #

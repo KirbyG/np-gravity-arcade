@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from common_constants import UP, DOWN, LEFT, RIGHT, ZERO
+from common_constants import UP, DOWN, LEFT, RIGHT, ZERO, COLORS
 
 # tile-based game, either popils or megalit
 class Game(ABC):
@@ -26,11 +26,19 @@ class Game(ABC):
         self.solution = self.solve(puzzle)
         self.solution_step = 0
 
+    def __repr__(self):
+        result = ''
+        for row in self.grid:
+            for block in row:
+                result += block.type + ' '
+            result += '\n'
+        return result
 
 # this class will populate the game grid. currently this is just a wrapper for a color
 class Block():
-    def __init__(self, color):
-        self.color = color
+    def __init__(self, type):
+        self.color = COLORS[type]
+        self.type = type
 
 # wrapper class to track player position
 class Player():
