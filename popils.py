@@ -47,7 +47,7 @@ class Popils(Game):
         grid = [[Block('hard')] * self.num_cols for row in range(self.num_rows)]
 
         # Starting zone
-        for i in range(self.player.col + 1, transition_col):
+        for i in range(self.player.col, transition_col):
             grid[self.player.row][i] = Block('support')
         grid[self.player.row][transition_col] = Block('ladder')
         for i in range(self.player.col, transition_col - 1, 2):
@@ -141,49 +141,33 @@ class Popils(Game):
 
         return steps
 
-    # command is one of the common vectors imported from common_constants
-    def update(self, command):
-        pass
+    # vector is one of the common vectors imported from common_constants
+    def update(self, vector):
+        vertical = 0
+        horizontal = 1
+        target = self.grid[self.player.row + vector[vertical]
+                        ][self.player.col + vector[horizontal]]
+        if vector == UP:
+            if target.type == 'soft':
+                for falling_row in range(self.player.row + 1, self.num_rows - 1):
+                    self.grid[falling_row][self.player.col] = self.grid[falling_row + 1][self.player.col]
+                self.grid[self.num_rows - 1][self.player.col] = Block('hard')
+                self.altered_rows = [self.player.row + 1, self.num_rows - 1]
+                self.altered_cols = [self.player.col, self.player.col]
+            elif self.grid[self.player.row][self.player.col].type == 'ladder' and (target.type != 'hard'):
+                self.move(UP)
+        elif target.type != 'hard':
+            self.move(vector)
+            while (self.grid[self.player.row - 1][self.player.col].type == 'support' and self.grid[self.player.row][self.player.col].type == 'support'):
+                self.move(DOWN)
 
-    # update helpers
-    def move(self, vector, player):
-        pass
+    # update helper
+    def move(self, vector):
+        vertical = 0
+        horizontal = 1
 
-    def force(self, vector, player):
-        pass
+        self.altered_rows = [self.player.row, self.player.row]
+        self.altered_cols = [self.player.col, self.player.col]
 
-# If player walks off the top of a 'ladder', make them fall
-# while (state[player.row - 1][player.col] == 'support' and player.occupying == 'support'):
-#     game.force(DOWN, player)
-
-# Change player's coordinates and refresh the displayed game grid
-# def move(vector, player):
-#     vertical = 0
-#     horizontal = 1
-
-#     state[player.row][player.col] = player.occupying
-#     player.row += vector[vertical]
-#     player.col += vector[horizontal]
-#     player.occupying = state[player.row][player.col]
-#     state[player.row][player.col] = PLAYER
-#     draw(min(player.row, player.row - vector[vertical]), max(player.row, player.row - vector[vertical]),
-#          min(player.col, player.col - vector[horizontal]), max(player.col, player.col - vector[horizontal]))
-
-# # Wrapper for move() that enables auto-solving
-# def force(vector, player):
-#     global state
-#     vertical = 0
-#     horizontal = 1
-#     target = state[player.row + vector[vertical]
-#                    ][player.col + vector[horizontal]]
-#     if vector == UP:
-#         if target == 'soft':
-#             for falling_row in range(player.row + 1, ROWS - 1):
-#                 state[falling_row][player.col] = state[falling_row + 1][player.col]
-#             state[ROWS - 1][player.col] = 'hard'
-#             draw(player.row + 1, ROWS - 1, player.row, player.col)
-#         elif player.occupying == 'ladder' and (target != 'hard'):
-#             move(UP, player)
-#     elif target != 'hard':
-#         move(vector, player)
-#
+        self.player.row += vector[vertical]
+        self.player.col += vector[horizontal]
