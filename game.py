@@ -1,15 +1,14 @@
 from abc import ABC, abstractmethod
-
 from common_constants import UP, DOWN, LEFT, RIGHT, ZERO
 
-
-
-class Game(ABC):  # tile-based game, either popils or megalit
+# tile-based game, either popils or megalit
+class Game(ABC):
+    # subclasses must expose a method to generate a solving move sequence
     @abstractmethod
     def solve(self, puzzle):
         pass
 
-    #
+    # subclasses must expose a method to reduce 3SAT into a game level
     @abstractmethod
     def reduce(self, puzzle):
         pass
@@ -24,31 +23,14 @@ class Game(ABC):  # tile-based game, either popils or megalit
         self.complete = False
         self.altered_rows = self.altered_cols = [0, 0]
         self.grid = self.reduce(puzzle)
-        self.solution = self.generate_solution(puzzle)
+        self.solution = self.solve(puzzle)
+        self.solution_step = 0
 
 
-# this class will populate the game grid
+# this class will populate the game grid. currently this is just a wrapper for a color
 class Block():
-    def __init__(self, color, traversable=False, repulsion_force=DOWN, connectivity=[ZERO], destructible=False):
+    def __init__(self, color):
         self.color = color
-        self.traversible = traversable
-        self.repulsion_force = repulsion_force
-        self.connectivity = connectivity
-        self.destructible = destructible
-
-
-class Air(Block):
-    def __init__(self, color):
-        super().__init__(color, traversable=True, connectivity=[])
-
-class Scaffold(Block):
-    def __init__(self, color):
-        super().__init__(color, traversable=True)
-
-class Ladder(Block):
-    def __init__(self, color):
-        super().__init__(color, traversable=True, repulsion_force=ZERO)
-
 
 # wrapper class to track player position
 class Player():

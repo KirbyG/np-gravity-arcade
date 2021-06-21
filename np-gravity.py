@@ -98,7 +98,7 @@ draw(screen, game)
 # game loop
 while not game.complete:
     # update gamestate
-    if len(game.solution) != 0:  # autosolver mode
+    if args.solver:  # autosolver mode
         game.update(game.solution[game.solution_step])
         game.solution_step += 1
     else:  # user input mode
