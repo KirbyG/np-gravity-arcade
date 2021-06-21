@@ -1,11 +1,10 @@
 from abc import ABC, abstractmethod
 
-import common_constants as const
-from common_constants import UP, DOWN, LEFT, RIGHT
+from common_constants import UP, DOWN, LEFT, RIGHT, ZERO
 
 class Game(ABC):  # tile-based game, either popils or megalit
     @abstractmethod
-    def generate_solution(self, puzzle):
+    def solve(self, puzzle):
         pass
 
     #
@@ -16,7 +15,7 @@ class Game(ABC):  # tile-based game, either popils or megalit
     # compute and store the reduction and solving move sequence
     def __init__(self, puzzle):
         self.grid = self.reduce(puzzle)
-        self.solution = self.generate_solution(puzzle)
+        self.solution = self.solve(puzzle)
         self.complete = False
 
     # returns the bounding box surrounding affected game-grid elements
@@ -26,12 +25,24 @@ class Game(ABC):  # tile-based game, either popils or megalit
 
 # this class will populate the game grid
 class Block():
-    def __init__(self, color, traversable, repulsion_force=DOWN, connectivity=[], destructible=False):
+    def __init__(self, color, traversable=False, repulsion_force=DOWN, connectivity=[ZERO], destructible=False):
         self.color = color
         self.traversible = traversable
         self.repulsion_force = repulsion_force
         self.connectivity = connectivity
         self.destructible = destructible
+
+class Air(Block):
+    def __init__(self, color):
+        super().__init__(color, traversable=True, connectivity=[])
+
+class Scaffold(Block):
+    def __init__(self, color):
+        super().__init__(color, traversable=True)
+
+class Ladder(Block):
+    def __init__(self, color):
+        super().__init__(color, traversable=True, repulsion_force=ZERO)
 
 # wrapper class to track player position
 class Player():

@@ -44,12 +44,12 @@ class Popils(Game):
         # Initially set entire zone to indestructible blocks
         # Using this "*" notation twice doesn't produce expected results
         #   because Python just makes pointers to original tuple
-        grid = [[HARD] * self.num_cols for row in range(self.num_rows)]
+        grid = [[Block(HARD)] * self.num_cols for row in range(self.num_rows)]
 
         # Starting zone
         for i in range(self.player.col + 1, transition_col):
-            grid[self.player.row][i] = SUPPORT
-        grid[self.player.row][transition_col] = LADDER
+            grid[self.player.row][i] = Block(SUPPORT)
+        grid[self.player.row][transition_col] = Block(LADDER)
         for i in range(self.player.col, transition_col - 1, 2):
             grid[assignment_row][i] = SOFT
         grid[assignment_row][transition_col] = LADDER
@@ -102,7 +102,7 @@ class Popils(Game):
             grid[bottom_row + i][col] = SUB_GADGETS[var_state + 1][i]
 
     # compute the popils-specific solving move sequence for the given 3SAT instance
-    def generate_solution(self, puzzle):
+    def solve(self, puzzle):
         steps = []
         # make variable assignments
         for truthiness in puzzle.solution:
