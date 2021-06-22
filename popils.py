@@ -13,7 +13,6 @@ SUB_GADGETS = [SUB_GADGET_NEGATED, SUB_GADGET_ABSENT, SUB_GADGET_PRESENT]
 SUB_GADGET_HEIGHT = 4
 GADGET_HEIGHT = 6
 
-
 class Popils(Game):
     def __init__(self, puzzle):
         self.puzzle = puzzle
@@ -171,3 +170,6 @@ class Popils(Game):
 
         self.player.row += vector[vertical]
         self.player.col += vector[horizontal]
+
+        if self.grid[self.player.row][self.player.col].type == 'princess':
+            self.complete = True

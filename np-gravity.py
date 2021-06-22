@@ -87,7 +87,7 @@ else:
 
 # create game instance of the correct type
 puzzle = Puzzle(raw_input)
-game = Megalit(Puzzle(raw_input)) if args.megalit else Popils(puzzle)
+game = Megalit(puzzle) if args.megalit else Popils(puzzle)
 
 # create render surface and game clock, set window title
 screen, clock = init_pygame(
@@ -102,6 +102,8 @@ while not game.complete:
     if args.solver:  # autosolver mode
         game.update(game.solution[game.solution_step])
         game.solution_step += 1
+        if game.solution_step == len(game.soliution):
+            game.complete = True
     else:  # user input mode
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
