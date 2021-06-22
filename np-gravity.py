@@ -102,7 +102,7 @@ while not game.complete:
     if args.solver:  # autosolver mode
         game.update(game.solution[game.solution_step])
         game.solution_step += 1
-        if game.solution_step == len(game.soliution):
+        if game.solution_step == len(game.solution):
             game.complete = True
     else:  # user input mode
         for event in pygame.event.get():

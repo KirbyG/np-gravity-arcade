@@ -36,9 +36,10 @@ class Game(ABC):
 
 # this class will populate the game grid. currently this is just a wrapper for a color
 class Block():
-    def __init__(self, type):
+    def __init__(self, type, connections=[]):
         self.color = COLORS[type]
         self.type = type
+        self.connections = connections
 
 # wrapper class to track player position
 class Player():
