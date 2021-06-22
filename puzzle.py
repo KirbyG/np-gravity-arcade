@@ -3,7 +3,7 @@ from common_constants import VARS_PER_CLAUSE
 # Default 3SAT instance. Will be ignored if user provides alternative
 DEFAULT_3SAT = '1 2 3 -2 -3 4 1 -3 6 -1 4 5 2 -4 -6'
 
-
+# #SAT instance container and associated methods
 class Puzzle:
     def __init__(self, raw_instance):
         self.three_sat = self.parse(raw_instance)
@@ -11,6 +11,7 @@ class Puzzle:
         self.expanded_form = self.expand()
         self.solution = self.find_solution()
 
+    # convert 3SAT to an expanded form useful in the popils and megalit reductions
     def expand(self):
         expansion = []
         for i, clause in enumerate(self.three_sat):
@@ -72,11 +73,9 @@ class Puzzle:
         # find the solving variable assignment by brute force
         for raw_guess in range(2 ** self.num_vars):
             # Convert ordinal value of guess to its binary representation
-            format_str = r'{:0' + str(self.num_unique_vars) + r'b}'
-            # TODO make this line a little more readable (or add explanation)
-            parsed_guess = [int(format_str.format(guess)[j]) *
-                            2 - 1 for j in range(self.num_unique_vars)]
-
+            format_str = r'{:0' + str(self.num_vars) + r'b}'
+            guess = [int(format_str.format(raw_guess)[j]) *
+                     2 - 1 for j in range(self.num_vars)]
 
             # Save current solution guess iff
             # Every clause has at least one variable that 'passes'
