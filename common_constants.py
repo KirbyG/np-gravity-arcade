@@ -17,7 +17,9 @@ COLORS = {
           'support': (255, 255, 255),
           'air': (255, 255, 255),
           'slab': (128, 128, 128),
-          'border': (0, 0, 0)
+          'border': (0, 0, 0),
+          'tip':  (110,  110, 110),
+          'gripped': (50, 50, 50)
         }
 
 class Vector:
@@ -39,6 +41,14 @@ class Vector:
 
     def __add__(self, other):
         return Vector(self.x + other.x, self.y + other.y)
+
+    def __iadd__(self, other):
+          self.x += other.x
+          self.y += other.y
+          return self
+
+    def __eq__(self, other):
+          return self.x == other.x and self.y == other.y
 
     # aliasing for convenient matrix access use cases
     def __getattr__(self, name):
@@ -80,3 +90,9 @@ class Grid:
             self.grid[int(key.row)][int(key.col)] = value
         else:
             self.grid[key] = value
+
+left = Vector(LEFT[1],  LEFT[0])
+right = Vector(RIGHT[1], RIGHT[0])
+up = Vector(UP[1], UP[0])
+down = Vector(DOWN[1], DOWN[0])
+zero = Vector(ZERO[1], ZERO[0])

@@ -48,5 +48,7 @@ class Player():
     def __init__(self, pos):
         self.row = pos[0]
         self.col = pos[1]
+        self.pos = Vector(pos[1], pos[0])
         self.color = (255, 0, 0)  # red
+        self.gripping = Vector(0, 0)
 

@@ -3,7 +3,7 @@ import pygame
 from puzzle import Puzzle, DEFAULT_3SAT
 from popils import Popils
 from megalit import Megalit
-from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE
+from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE, ZERO
 
 # Measured in px
 WINDOW_WIDTH = 500
@@ -62,7 +62,7 @@ def draw(screen, game):
 
     # draw player
     rectangles.append(pygame.draw.rect(screen, game.player.color,
-                      grid_to_px(game.player.row, game.player.col)))
+                      grid_to_px(game.player.pos.row, game.player.pos.col)))
 
     pygame.display.update(rectangles)  # update the changed areas
     # reset bounds to indicate drawing is complete
@@ -117,6 +117,8 @@ while not game.complete:
                     game.update(UP)
                 elif event.key == pygame.K_DOWN:
                     game.update(DOWN)
+                elif event.key == pygame.K_SPACE:
+                    game.update(ZERO)
     # iterate game display with framerate capped at 15 FPS
     draw(screen, game)
     clock.tick(15)
