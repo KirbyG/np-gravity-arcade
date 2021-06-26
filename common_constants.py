@@ -19,3 +19,7 @@ COLORS = {
           'slab': (128, 128, 128),
           'border': (0, 0, 0)
         }
+
+# square root function that returns an integer when passed a perfect square
+def sqrt(num):
+    pass
