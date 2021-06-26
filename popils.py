@@ -18,8 +18,6 @@ class Popils(Game):
         self.puzzle = puzzle
         self.player = Player([1, 1])
         super().__init__(puzzle)
-        self.altered_rows = [0, self.num_rows - 1]
-        self.altered_cols = [0, self.num_cols - 1]
 
     def reduce(self, puzzle):
         # set dimensions of grid

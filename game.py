@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from common_constants import UP, DOWN, LEFT, RIGHT, ZERO, COLORS
+from common_constants import UP, DOWN, LEFT, RIGHT, ZERO, COLORS, Vector
 
 # tile-based game, either popils or megalit
 class Game(ABC):
@@ -25,6 +25,8 @@ class Game(ABC):
         self.grid = self.reduce(puzzle)
         self.solution = self.solve(puzzle)
         self.solution_step = 0
+        self.altered_rows = [0, self.num_rows - 1]
+        self.altered_cols = [0, self.num_cols - 1]
 
     def __repr__(self):
         result = ''
@@ -47,3 +49,4 @@ class Player():
         self.row = pos[0]
         self.col = pos[1]
         self.color = (255, 0, 0)  # red
+
