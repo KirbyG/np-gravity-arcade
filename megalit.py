@@ -3,8 +3,6 @@ from game import Game, Block, Player
 from common_constants import LEFT, RIGHT, UP, DOWN, ZERO, left, right, up, down, zero, Vector, Grid
 from math import sqrt
 
-
-
 # Megalit was developed by the ASCII Corporation for the Gameboy
 class Megalit(Game):
     def __init__(self, puzzle):
@@ -77,24 +75,65 @@ class Megalit(Game):
                     if not self.supported(candidate_slab):
                         self.slab_fall(candidate_slab)
             slab = [elem + down for elem in slab]
+        else:
+            return break_pass
 
-    def push(self, force):
-        slab = self.reconstruct_slab(self.player.pos)
-        self.slab_fall(slab)
-        if self.grid[self.player.pos].type in ('slab', 'tip'):
-            self.complete = True
+    def move_slab(self, slab, force):
+        # precheck: ensure the player has solid ground to move onto and the slab is free to move
+        
+        # compute the extremal lateral extent of the slab
+        edge_dist = max([abs(self.player.x - loc.x) for loc in slab])
+
+        # select the subset of blocks in the slab lying at this extremum
+        slab_edge = [loc for loc in slab if abs(self.player.x - loc.x) == edge_dist]
+
+        # for each of these blocks, verify that there is air to the side
+        blocked = all([self.grid[loc + force].type == 'air' for loc in slab_edge])
+
+        if not blocked and self.grid[self.player.loc + force + down] != 'air':
+            # update both grid and slab
+            for loc in reversed(slab):
+                self.grid[loc + force].type = self.grid[loc].type
+                loc += force
+
+            # trigger a potentially recursive collapse
+            if self.slab_fall(slab):
+                # slab_fall returns True if a collapse occurs
+                self.player.gripping = False
+
+            # move the player
+            self.player.pos += force
+        
+            # finally, we need to end the game if a slab has fallen on the player
+            if self.grid[self.player.pos].type in ('slab', 'tip'):
+                self.complete = True
     
+    # as distinct from slab_fall
     def player_fall(self):
         while self.grid[self.player.pos + down].type == 'air':
             self.player.pos += down
 
+    #vector truthiness override, test level that is solvable without unphysical jumps, if tree clarity upgrades
     def update(self, vector):
-        print('updating')
         force = Vector(vector[1], vector[0])
-        pos: Vector = self.player.pos
+
+        if self.player.gripping:
+            # we are trying to move a slab
+            if force.x:
+                # we can ignore attempts to move up or down with a slab
+                self.move_slab(self.reconstruct_slab(self.player.pos + ((self.player.gripping @ force) * force)), force)
+        elif force:
+            # we are just trying to move
+            if force == down:
+                self.player_fall()
+            if force == up:
+                self.jump()
+            if force.x:
+                self.walk(force)
+        else:
+            self.change_grip()
         
         if force.magnitude == 0:
-            print('grip command')
             if self.grid[pos + left].type == 'tip':
                 self.grid[pos + left].type = 'gripped'
                 self.player.gripping = left
@@ -134,3 +173,7 @@ class Megalit(Game):
                         
         self.altered_rows = [0, self.num_rows - 1]
         self.altered_cols = [0, self.num_cols - 1]
+
+# keep track of Megalit slabs and support their motion and collapse mechanics
+class Slab:
+    pass

@@ -2,4 +2,4 @@ This is a tool to aid in the creation of a paper concerning the computational co
 
 TODO:
     use Grid and Vector in popils too
-    replace row and col with x and y in all cases
+    replace row and col with x and y

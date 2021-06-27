@@ -64,6 +64,10 @@ class Vector:
     
     def __repr__(self):
         return '{}, {}'.format(self.x, self.y)
+    
+    # the zero vector is false, all others are true
+    def __bool__(self):
+          return self.magnitude == 0
 
 # wrapper for a 2d matrix allowing vector indexing
 class Grid:
