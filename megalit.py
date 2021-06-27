@@ -15,13 +15,7 @@ from math import sqrt
 class Megalit(Game):
     # we let Game handle __init__ calls
 
-    # SOLVE
-
-    # the solving move sequence for Megalit is significantly longer than for Popils
-    def solve(self, puzzle):
-        return [UP]
-
-    # REDUCE
+    # REDUCE - this is the heart of the NP-completeness proof
 
     # refer to <paper-filename>.pdf for details
     def reduce(self, puzzle):
@@ -45,7 +39,13 @@ class Megalit(Game):
         self.player = Player([1, 1])
         return grid
     
-    # UPDATE
+    # SOLVE - automatically generate the solution to the level
+
+    # the solving move sequence for Megalit is significantly longer than for Popils
+    def solve(self, puzzle):
+        return [UP]
+
+    # UPDATE - support gameplay
 
     def player_fall(self):
         while self.grid[self.player.pos + down].type == 'air':
@@ -113,16 +113,6 @@ class Slab:
         end = origin + ((extent.magnitude - 1) * step)
         grid[end] = Block('tip', connections=[-1 * step])
 
-    # returns a list of vectors
-    def reconstruct_slab(self, tip):
-        if self.grid[tip].type == 'air':
-            return None
-        slab = [tip]
-        prop_dir = self.grid[tip].connections[0]
-        while self.grid[slab[-1] + prop_dir].type != 'tip':
-            slab.append(slab[-1] + prop_dir)
-        return slab
-
     def supported(self, slab):
         if slab:
             if self.grid[slab[0]].connections[0].x:
@@ -135,7 +125,7 @@ class Slab:
         return True
 
     # recursive
-    def slab_fall(self, slab):
+    def fall(self, grid):
         break_pass = True
         while not self.supported(slab):
             for elem in slab:
@@ -151,7 +141,7 @@ class Slab:
         else:
             return break_pass
 
-    def move_slab(self, slab, force):
+    def fall(self, grid, force):
         # precheck: ensure the player has solid ground to move onto and the slab is free to move
         
         # compute the extremal lateral extent of the slab
@@ -173,3 +163,11 @@ class Slab:
             if self.slab_fall(slab):
                 # slab_fall returns True if a collapse occurs
                 self.player.gripping = False
+
+    # the player has tried to move this slab
+    def slide(self, grid, force):
+        # check if the slab can slide
+        # slide the slab
+        # if this slab sliding removed the support for another slab, apply gravity to that slab with potential recursive consequences
+        # apply gravity to self, which may also trigger a recursive collapse
+        return moved, fell
