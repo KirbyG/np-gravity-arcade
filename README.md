@@ -10,3 +10,4 @@ this is not a full emulator, the intention here is to support graphically minima
 
 graphical and mechanical simplifications
 blocks can see their slabs
+ALLOW EXIT DURING SOLVE

@@ -5,12 +5,12 @@ from common_constants import UP, DOWN, LEFT, RIGHT, ZERO, COLORS, Vector
 class Game(ABC):
     # subclasses must expose a method to generate a solving move sequence
     @abstractmethod
-    def solve(self, puzzle):
+    def solve(self):
         pass
 
     # subclasses must expose a method to reduce 3SAT into a game level
     @abstractmethod
-    def reduce(self, puzzle):
+    def reduce(self):
         pass
 
     # returns the bounding box surrounding affected game-grid elements
@@ -21,18 +21,15 @@ class Game(ABC):
     # compute and store the reduction and solving move sequence
     def __init__(self, puzzle):
         self.complete = False
-        self.altered_rows = self.altered_cols = [0, 0]
-        self.grid = self.reduce(puzzle)
-        self.solution = self.solve(puzzle)
+        self.reduce() # build the grid
+        self.solve(puzzle) # build the solution
         self.solution_step = 0
-        self.altered_rows = [0, self.num_rows - 1]
-        self.altered_cols = [0, self.num_cols - 1]
 
     def __repr__(self):
         result = ''
-        for row in self.grid:
+        for row in self.grid[::-1]:
             for block in row:
-                result += block.type + ' '
+                result += block.type.upper()[0] + ' '
             result += '\n'
         return result
 
@@ -43,11 +40,14 @@ class Block():
         self.type = type
         self.connections = connections
 
+    def __setattribute__(self, name, value):
+        if name == 'type':
+            self.type = value
+            self.color = COLORS[self.type]
+
 # wrapper class to track player position
 class Player():
     def __init__(self, pos):
-        self.row = pos[0]
-        self.col = pos[1]
         self.pos = Vector(pos[1], pos[0])
         self.color = (255, 0, 0)  # red
         self.gripping = Vector(0, 0)

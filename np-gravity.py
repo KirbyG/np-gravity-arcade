@@ -3,12 +3,10 @@ import pygame
 from puzzle import Puzzle, DEFAULT_3SAT
 from popils import Popils
 from megalit import Megalit
-from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE, ZERO
+from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE, ZERO, Vector
 
 # Measured in px
-WINDOW_WIDTH = 500
-WINDOW_HEIGHT = 1000
-
+WINDOW_DIM = Vector(500, 1000)
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -31,8 +29,7 @@ def init_pygame(window_title):
     # Set window title
     pygame.display.set_caption(window_title)
     # Initialize drawing surface
-    window_size = [WINDOW_WIDTH, WINDOW_HEIGHT]
-    screen = pygame.display.set_mode(window_size)
+    screen = pygame.display.set_mode(WINDOW_DIM())
 
     clock = pygame.time.Clock()
 
@@ -64,10 +61,8 @@ def draw(screen, game):
     rectangles.append(pygame.draw.rect(screen, game.player.color,
                       grid_to_px(game.player.pos.row, game.player.pos.col)))
 
-    pygame.display.update(rectangles)  # update the changed areas
-    # reset bounds to indicate drawing is complete
-    game.altered_rows = [0, 0]
-    game.altered_cols = [0, 0]
+    pygame.display.update()  # update the changed areas
+
 
 
 # ----- Main program code begins here -----
@@ -87,7 +82,7 @@ else:
 
 # create game instance of the correct type
 puzzle = Puzzle(raw_input)
-game = Megalit(puzzle) if not args.megalit else Popils(puzzle)
+game = Megalit(puzzle) if args.megalit else Popils(puzzle)
 
 # create render surface and game clock, set window title
 screen, clock = init_pygame(

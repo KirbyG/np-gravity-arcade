@@ -1,13 +1,6 @@
 # Definition of 3SAT
 VARS_PER_CLAUSE = 3
 
-# common vectors
-ZERO = [0, 0]
-LEFT = [0, -1]
-RIGHT = [0, 1]
-UP = [1, 0]
-DOWN = [-1, 0]
-
 # colors named based on in-game functionality
 COLORS = {
           'ladder': (0, 0, 255),
@@ -78,25 +71,27 @@ class Grid:
         else:
             initializer = lambda: None
         if len(args) == 1:
-            size = args[0]
+            self.dim = args[0]
         else:
-            size = Vector(args[1], args[0])
-        self.grid = [[initializer() for col in range(size.col)] for row in range(size.col)]
+            self.dim = Vector(args[0], args[1])
+        self.grid = [[initializer() for y in range(self.dim.y)] for x in range(self.dim.x)]
         
     def __getitem__(self, key):
         if type(key) == Vector:
-            return self.grid[int(key.row)][int(key.col)]
+            return self.grid[int(key.x)][int(key.y)]
         else:
-            return self.grid[key]
+            x, y = key
+            return self.grid[x][y]
     
     def __setitem__(self, key, value):
         if type(key) == Vector:
-            self.grid[int(key.row)][int(key.col)] = value
+            self.grid[int(key.x)][int(key.y)] = value
         else:
-            self.grid[key] = value
+            x, y = key
+            self.grid[x][y] = value
 
-left = Vector(LEFT[1],  LEFT[0])
-right = Vector(RIGHT[1], RIGHT[0])
-up = Vector(UP[1], UP[0])
-down = Vector(DOWN[1], DOWN[0])
-zero = Vector(ZERO[1], ZERO[0])
+LEFT = Vector(-1, 0)
+RIGHT = Vector(1, 0)
+UP = Vector(0, 1)
+DOWN = Vector(0, -1)
+ZERO = Vector(0, 0)
