@@ -60,7 +60,10 @@ class Vector:
     
     # the zero vector is false, all others are true
     def __bool__(self):
-          return self.magnitude == 0
+        return self.magnitude == 0
+
+    def __truediv__(self, other):
+        return Vector(self.x / other.x, self.y / other.y)
 
 # wrapper for a 2d matrix allowing vector indexing
 class Grid:

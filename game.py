@@ -27,7 +27,7 @@ class Game(ABC):
 
     def __repr__(self):
         result = ''
-        for row in self.grid[::-1]:
+        for row in self.grid.grid[::-1]:
             for block in row:
                 result += block.type.upper()[0] + ' '
             result += '\n'
@@ -36,19 +36,25 @@ class Game(ABC):
 # this class will populate the game grid. currently this is just a wrapper for a color
 class Block():
     def __init__(self, type, connections=[]):
-        self.color = COLORS[type]
         self.type = type
         self.connections = connections
 
-    def __setattribute__(self, name, value):
+    def __setattr__(self, name, value):
         if name == 'type':
-            self.type = value
-            self.color = COLORS[self.type]
+            self.identity = value
+            #print(value, self.identity)
+            self.color = COLORS[self.identity]
+        else:
+            super().__setattr__(name, value)
+    
+    def __getattr__(self, name):
+        if name == 'type':
+            return self.identity
 
 # wrapper class to track player position
 class Player():
     def __init__(self, pos):
-        self.pos = Vector(pos[1], pos[0])
+        self.pos = pos
         self.color = (255, 0, 0)  # red
         self.gripping = Vector(0, 0)
 

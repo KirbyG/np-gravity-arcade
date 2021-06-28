@@ -1,3 +1,5 @@
+# SETUP
+
 import argparse
 import pygame
 from puzzle import Puzzle, DEFAULT_3SAT
@@ -7,6 +9,7 @@ from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE, ZERO, Vecto
 
 # Measured in px
 WINDOW_DIM = Vector(500, 1000)
+MIN_BLOCK_DIM = 15
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -35,31 +38,34 @@ def init_pygame(window_title):
 
     return screen, clock
 
+# DRAWING
+
+'''def set_tile_size(self):
+    # Scale size of game blocks (within reasonable limits)
+    block_height = max(WINDOW_HEIGHT / self.num_rows, MIN_BLOCK_DIM)
+    block_width = max(WINDOW_WIDTH / self.num_cols, MIN_BLOCK_DIM)
+
+    # Blocks are square, so just use smaller side length
+    return min(block_height, block_width)'''
 
 # graphical helper function: return a rectangle where the specified block in the grid should be drawn
-def grid_to_px(row, col):
+def grid_to_px(x, y):
     # Side length of game blocks (which are all squares)
-    block_dim = min(WINDOW_HEIGHT / game.num_rows,
-                    WINDOW_WIDTH / game.num_cols)
+    block_dim = min((WINDOW_DIM / game.grid.dim)())
 
-    return [col * block_dim + 1, (game.num_rows - row - 1) * block_dim + 1, block_dim - 1, block_dim - 1]
+    return [x * block_dim + 1, (game.grid.dim.y - y - 1) * block_dim + 1, block_dim - 1, block_dim - 1]
 
 
 # Render the designated portion of the display
 def draw(screen, game):
-    rectangles = []
-
-    # draw blocks from the game grid if they are in the updated zone
-    start = 0
-    end = 1
-    for row in range(game.altered_rows[start], game.altered_rows[end] + 1):
-        for col in range(game.altered_cols[start], game.altered_cols[end] + 1):
-            rectangles.append(pygame.draw.rect(
-                screen, game.grid[row][col].color, grid_to_px(row, col)))
+    for x in range(game.grid.dim.x):
+        for y in range(game.grid.dim.y):
+            pygame.draw.rect(
+                screen, game.grid[x, y].color, grid_to_px(x, y))
 
     # draw player
-    rectangles.append(pygame.draw.rect(screen, game.player.color,
-                      grid_to_px(game.player.pos.row, game.player.pos.col)))
+    pygame.draw.rect(screen, game.player.color,
+                      grid_to_px(game.player.pos.x, game.player.pos.y))
 
     pygame.display.update()  # update the changed areas
 
@@ -83,7 +89,7 @@ else:
 # create game instance of the correct type
 puzzle = Puzzle(raw_input)
 game = Megalit(puzzle) if args.megalit else Popils(puzzle)
-
+print(game)
 # create render surface and game clock, set window title
 screen, clock = init_pygame(
     'Megalit Reduction' if args.megalit else 'Popils Reduction')

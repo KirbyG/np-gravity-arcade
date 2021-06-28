@@ -19,10 +19,10 @@ class Popils(Game):
         self.player = Player(Vector(1, 1))
         super().__init__(puzzle)
 
-    def reduce(self, puzzle):
+    def reduce(self):
         # set dimensions of grid and initialize
-        x_dim = 3 + (2 * puzzle.num_vars)
-        y_dim =  6 * (puzzle.num_clauses + 1)
+        x_dim = 3 + (2 * self.puzzle.num_vars)
+        y_dim =  6 * (self.puzzle.num_clauses + 1)
         self.grid = Grid(x_dim, y_dim, lambda: Block('hard'))
 
         # build static level features
