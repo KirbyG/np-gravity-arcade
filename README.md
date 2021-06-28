@@ -11,3 +11,11 @@ this is not a full emulator, the intention here is to support graphically minima
 graphical and mechanical simplifications
 blocks can see their slabs
 ALLOW EXIT DURING SOLVE
+
+standardize input format
+fix Game repr
+scrolling
+
+3SAT Example Library: https://www.cs.ubc.ca/%7Ehoos/SATLIB/benchm.html
+
+TODO remove manual cmd line entry, adopt DIMACS input format, and add input example to this file
