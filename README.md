@@ -10,9 +10,9 @@ TODO (jacob)
     Make README more useful
 
 TODO (kirby)
-    class breakouts
     megalit
-        reduction (fix obvious issue first)
+        comment scrolling code
+        reduction (fix obvious issue first in g-sheets)
         solver
 
 TODO (both)

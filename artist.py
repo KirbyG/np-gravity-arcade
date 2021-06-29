@@ -8,7 +8,7 @@ class Artist:
         self.game = game
 
         # pygame setup
-        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,0)
+        os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,0) # locate the window in the upper left
         pygame.init()
         pygame.display.set_caption(f'{type(game).__name__} Reduction')
 
@@ -20,12 +20,21 @@ class Artist:
         # how much display space we have to work with
         SCREEN_DIM = Vector(pygame.display.Info().current_w - BUFFER, pygame.display.Info().current_h - BUFFER)
 
-        # 
+        # how big could each block dimension be if we used the whole display
         FITTED_BLOCK_DIM = SCREEN_DIM / game.grid.dim
-        MIN_BLOCK_DIM = 15
+
+        MIN_BLOCK_DIM = 15 # arbitrary cutoff for ease of visualization
+
+        # blocks need to be square and not smaller than the min
         self.BLOCK_DIM = max(MIN_BLOCK_DIM, min(FITTED_BLOCK_DIM()))
+
+        # limit the max window dimension to fit on the display, and ensure it multiplies the block dimension
         self.WINDOW_DIM = Vector(int(round(min(SCREEN_DIM.x - (SCREEN_DIM.x % self.BLOCK_DIM), self.BLOCK_DIM * game.grid.dim.x))), int(round(min(SCREEN_DIM.y - (SCREEN_DIM.y % self.BLOCK_DIM), self.BLOCK_DIM * game.grid.dim.y))))
+        
+        # the number of blocks that will fit in a window at a time
         self.WINDOW_BLOCKS = Vector(int(round(self.WINDOW_DIM.x / self.BLOCK_DIM)), int(round(self.WINDOW_DIM.y / self.BLOCK_DIM)))
+        
+        # position of the player on the screen while scrolling is active
         self.CENTER = Vector(int(self.WINDOW_BLOCKS.x / 2), int(self.WINDOW_BLOCKS.y / 2))
 
         # store pygame resources
@@ -35,6 +44,12 @@ class Artist:
         # initial render
         self.draw()
 
+    # all params are in block units
+    # return format is [corner x, corner y, width, height]
+    
+    # note that the y coordinate is inverted because pygame considers the upper
+    # left corner of the window to be the origin, while all logical objects
+    # rely on a more standard coordinate system originating in the lower left
     def grid_to_px(self, x, y, offset):
         return [(x - offset.x) * self.BLOCK_DIM + 1, (self.WINDOW_BLOCKS.y - 1 - (y - offset.y)) * self.BLOCK_DIM + 1, self.BLOCK_DIM - 1, self.BLOCK_DIM - 1]
 
