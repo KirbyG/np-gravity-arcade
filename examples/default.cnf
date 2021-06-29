@@ -1,7 +1,4 @@
 c This instance was created by Jacob & Kirby
-c
-c    clause length = 3 
-c
 p cnf 6 5 
 1 2 3 0
 -2 -3 4 0
