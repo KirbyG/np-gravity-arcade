@@ -2,7 +2,8 @@
 
 import argparse
 import pygame
-from puzzle import Puzzle, DEFAULT_3SAT
+# from pathlib import Path
+from puzzle import Puzzle
 from popils import Popils
 from megalit import Megalit
 from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE, ZERO, Vector
@@ -11,13 +12,14 @@ from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE, ZERO, Vecto
 WINDOW_DIM = Vector(500, 1000)
 MIN_BLOCK_DIM = 15
 
+# Default 3SAT instance. Will be ignored if user provides alternative
+DEFAULT_3SAT = "examples/default.cnf"
+
+
 def parse_arguments():
     parser = argparse.ArgumentParser()
-    input_type = parser.add_mutually_exclusive_group()
-    input_type.add_argument('-i', metavar='VAR', dest='instance', nargs='*',
-                            type=str, help="1 2 -3 is equivalent to the clause (x1 || x2 || !x3). Default is " + DEFAULT_3SAT)
-    input_type.add_argument('-f', dest='filename',
-                            help="file containing an instance of 3SAT")
+    parser.add_argument('-f', dest='filename',
+                        help="file containing an instance of 3SAT in DIMACS CNF format")
     parser.add_argument('-s', dest='solver', action='store_true',
                         help='run puzzle auto-solver')
     parser.add_argument('-m', '--megalit', action='store_true',
@@ -39,7 +41,6 @@ def init_pygame(window_title):
     return screen, clock
 
 # DRAWING
-
 '''def set_tile_size(self):
     # Scale size of game blocks (within reasonable limits)
     block_height = max(WINDOW_HEIGHT / self.num_rows, MIN_BLOCK_DIM)
@@ -65,10 +66,9 @@ def draw(screen, game):
 
     # draw player
     pygame.draw.rect(screen, game.player.color,
-                      grid_to_px(game.player.pos.x, game.player.pos.y))
+                     grid_to_px(game.player.pos.x, game.player.pos.y))
 
     pygame.display.update()  # update the changed areas
-
 
 
 # ----- Main program code begins here -----
@@ -78,16 +78,10 @@ print()  # Give separation from pygame message
 args = parse_arguments()
 
 # set raw instance input data from command line or file
-if args.filename:
-    with open(args.filename) as file:
-        raw_input = file.readline()
-elif args.instance:
-    raw_input = " ".join(args.instance)
-else:
-    raw_input = DEFAULT_3SAT
+filepath = args.filename if args.filename else DEFAULT_3SAT
 
 # create game instance of the correct type
-puzzle = Puzzle(raw_input)
+puzzle = Puzzle(filepath)
 game = Megalit(puzzle) if args.megalit else Popils(puzzle)
 
 # create render surface and game clock, set window title
