@@ -1,6 +1,5 @@
 # this file contains the Megalit class and its Slab helper class
 
-import builtins
 from game import Game, Block, Player
 from common_constants import LEFT, RIGHT, UP, DOWN, ZERO, Vector, Grid
 from math import sqrt
