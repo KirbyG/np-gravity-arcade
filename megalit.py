@@ -103,7 +103,7 @@ class Megalit(Game):
                 if self.grid[self.player.pos + force + DOWN].type != 'air' and not (self.player.gripping == -1 * force and self.grid[self.player.pos + force].type != 'air'): # ensure we have solid ground to move onto
                     slab = self.grid[self.player.pos + self.player.gripping].slab
                     moved, fell = slab.slide(force)
-                    
+
                     if moved: # the slab was able to move, so the player should as well
                         self.player.pos += force
                         
@@ -112,14 +112,15 @@ class Megalit(Game):
                             self.complete = True
 
                         if fell: # our grip has been broken
-                            print('fell')
                             self.player.gripping = ZERO
                             for block in slab.blocks:
                                 if block.type == 'gripped':
                                     block.type = 'tip'
 
                         # end the game if all slabs are on the ground
-                        self.complete = all([slab.grounded() for slab in self.slabs])
+                        if all([slab.grounded() for slab in self.slabs]):
+                            self.complete = True
+
         else: # we are just trying to move
             if force == DOWN:
                 self.player_fall()
@@ -168,15 +169,21 @@ class Slab:
         upper_neighbors = [self.world[position + UP].slab for position in self.positions if position.y == self.dirmost(UP) and self.world[position + UP].slab]
 
         # drop this slab
-        while not self.supported():
+        if not self.supported():
             self.move(DOWN)
+
+        if not self.supported():
+            for x in range(self.world.dim.x):
+                for y in range (self.world.dim.y):
+                    self.world[x, y].type = 'slab'
+            return
 
         [neighbor.fall() for neighbor in upper_neighbors]
 
     # the player has tried to move this slab
     def slide(self, force):
         if all([self.world[position + force].type == 'air' for position in self.positions if position.x == self.dirmost(force)]):
-            dropped = self.world[self.dirmost(-1 * force), self.dirmost(UP)].slab
+            dropped = self.world[self.dirmost(-1 * force), self.dirmost(UP) + 1].slab
             self.move(force)
             # if this slab sliding removed the support for another slab, apply gravity to that slab with potential recursive consequences
             if dropped:
@@ -184,8 +191,6 @@ class Slab:
             # apply gravity to self, which may also trigger a recursive collapse
             fell = not self.supported()
             self.fall()
-
+            
             return True, fell
         return False, False
-# TODO falls are not being registered
-# TODO slab dropping is not working
