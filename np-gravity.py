@@ -1,14 +1,15 @@
+# SETUP
+
 import argparse
 import pygame
 from puzzle import Puzzle, DEFAULT_3SAT
 from popils import Popils
 from megalit import Megalit
-from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE
+from common_constants import LEFT, RIGHT, DOWN, UP, VARS_PER_CLAUSE, ZERO, Vector
 
 # Measured in px
-WINDOW_WIDTH = 500
-WINDOW_HEIGHT = 1000
-
+WINDOW_DIM = Vector(500, 1000)
+MIN_BLOCK_DIM = 15
 
 def parse_arguments():
     parser = argparse.ArgumentParser()
@@ -31,43 +32,43 @@ def init_pygame(window_title):
     # Set window title
     pygame.display.set_caption(window_title)
     # Initialize drawing surface
-    window_size = [WINDOW_WIDTH, WINDOW_HEIGHT]
-    screen = pygame.display.set_mode(window_size)
+    screen = pygame.display.set_mode(WINDOW_DIM())
 
     clock = pygame.time.Clock()
 
     return screen, clock
 
+# DRAWING
+
+'''def set_tile_size(self):
+    # Scale size of game blocks (within reasonable limits)
+    block_height = max(WINDOW_HEIGHT / self.num_rows, MIN_BLOCK_DIM)
+    block_width = max(WINDOW_WIDTH / self.num_cols, MIN_BLOCK_DIM)
+
+    # Blocks are square, so just use smaller side length
+    return min(block_height, block_width)'''
 
 # graphical helper function: return a rectangle where the specified block in the grid should be drawn
-def grid_to_px(row, col):
+def grid_to_px(x, y):
     # Side length of game blocks (which are all squares)
-    block_dim = min(WINDOW_HEIGHT / game.num_rows,
-                    WINDOW_WIDTH / game.num_cols)
+    block_dim = min((WINDOW_DIM / game.grid.dim)())
 
-    return [col * block_dim + 1, (game.num_rows - row - 1) * block_dim + 1, block_dim - 1, block_dim - 1]
+    return [x * block_dim + 1, (game.grid.dim.y - y - 1) * block_dim + 1, block_dim - 1, block_dim - 1]
 
 
 # Render the designated portion of the display
 def draw(screen, game):
-    rectangles = []
-
-    # draw blocks from the game grid if they are in the updated zone
-    start = 0
-    end = 1
-    for row in range(game.altered_rows[start], game.altered_rows[end] + 1):
-        for col in range(game.altered_cols[start], game.altered_cols[end] + 1):
-            rectangles.append(pygame.draw.rect(
-                screen, game.grid[row][col].color, grid_to_px(row, col)))
+    for x in range(game.grid.dim.x):
+        for y in range(game.grid.dim.y):
+            pygame.draw.rect(
+                screen, game.grid[x, y].color, grid_to_px(x, y))
 
     # draw player
-    rectangles.append(pygame.draw.rect(screen, game.player.color,
-                      grid_to_px(game.player.row, game.player.col)))
+    pygame.draw.rect(screen, game.player.color,
+                      grid_to_px(game.player.pos.x, game.player.pos.y))
 
-    pygame.display.update(rectangles)  # update the changed areas
-    # reset bounds to indicate drawing is complete
-    game.altered_rows = [0, 0]
-    game.altered_cols = [0, 0]
+    pygame.display.update()  # update the changed areas
+
 
 
 # ----- Main program code begins here -----
@@ -102,7 +103,7 @@ while not game.complete:
     if args.solver:  # autosolver mode
         game.update(game.solution[game.solution_step])
         game.solution_step += 1
-        if game.solution_step == len(game.soliution):
+        if game.solution_step == len(game.solution):
             game.complete = True
     else:  # user input mode
         for event in pygame.event.get():
@@ -117,6 +118,8 @@ while not game.complete:
                     game.update(UP)
                 elif event.key == pygame.K_DOWN:
                     game.update(DOWN)
+                elif event.key == pygame.K_SPACE:
+                    game.update(ZERO)
     # iterate game display with framerate capped at 15 FPS
     draw(screen, game)
     clock.tick(15)

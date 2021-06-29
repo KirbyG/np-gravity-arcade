@@ -1,5 +1,5 @@
 from game import Game, Player, Block
-from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS
+from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS, Vector, Grid
 
 
 
@@ -16,90 +16,76 @@ GADGET_HEIGHT = 6
 class Popils(Game):
     def __init__(self, puzzle):
         self.puzzle = puzzle
-        self.player = Player([1, 1])
+        self.player = Player(Vector(1, 1))
         super().__init__(puzzle)
-        self.altered_rows = [0, self.num_rows - 1]
-        self.altered_cols = [0, self.num_cols - 1]
 
-    def reduce(self, puzzle):
-        # set dimensions of grid
-        self.num_rows = 6 * (puzzle.num_clauses + 1)
-        self.num_cols = 3 + (2 * puzzle.num_vars)
+    def reduce(self):
+        # set dimensions of grid and initialize
+        x_dim = 3 + (2 * self.puzzle.num_vars)
+        y_dim =  6 * (self.puzzle.num_clauses + 1)
+        self.grid = Grid(x_dim, y_dim, lambda: Block('hard'))
 
-        # Create bottom 3 rows & top 2 rows of puzzle
-        # Remaining area, including frame, is made of 'hard' blocks
-        grid = self.build_frame()
+        # build static level features
+        self.build_frame()
 
         # Place gadgets to construct puzzle
-        self.build_clauses(grid, puzzle)
-
-        return grid
+        self.build_clauses()
 
     # reduce helper function: create static areas of the grid that depend only on instance size
     def build_frame(self):
-        assignment_row = 2
-        # Column with path ('ladder's) between areas
-        transition_col = self.num_cols - 2
-        # Initially set entire zone to indestructible blocks
-        # Using this "*" notation twice doesn't produce expected results
-        #   because Python just makes pointers to original tuple
-        grid = [[Block('hard')] * self.num_cols for row in range(self.num_rows)]
-
         # Starting zone
-        for i in range(self.player.col, transition_col):
-            grid[self.player.row][i] = Block('support')
-        grid[self.player.row][transition_col] = Block('ladder')
-        for i in range(self.player.col, transition_col - 1, 2):
-            grid[assignment_row][i] = Block('soft')
-        grid[assignment_row][transition_col] = Block('ladder')
+        for x in range(self.player.pos.x, self.grid.dim.x - 2):
+            self.grid[x, self.player.pos.y].type = 'support'
+
+        self.grid[self.grid.dim.x - 2, self.player.pos.y].type = 'ladder'
+
+        for x in range(self.player.pos.x, self.grid.dim.x - 3, 2):
+            self.grid[x, 2].type = 'soft'
+
+        self.grid[self.grid.dim.x - 2, 2].type = 'ladder'
 
         # Ending zone
-        grid[self.num_rows - 2][transition_col] = Block('princess')
+        self.grid[self.grid.dim.x - 2, self.grid.dim.y - 2].type = 'princess'
+
         # Stop princess from walking
-        grid[self.num_rows - 3][transition_col] = Block('soft')
+        self.grid[self.grid.dim.x - 2, self.grid.dim.y - 3].type = 'soft'
 
-        # Send back partially-built level
-        return grid
+
 
     # reduce helper function
-    def build_clauses(self, grid, puzzle):
-        row_pointer = 3
+    def build_clauses(self):
+        bottom_y = 3
 
-        for clause in range(puzzle.num_clauses):
-
+        for clause in range(self.puzzle.num_clauses):
             # Fill in gadget region for each variable for current tuple
-            self.place_gadget(grid, puzzle.expanded_form[clause], row_pointer)
-            row_pointer += GADGET_HEIGHT
+            self.place_gadget(self.puzzle.expanded_form[clause], bottom_y)
+            bottom_y += GADGET_HEIGHT
 
     # reduce helper function
-    def place_gadget(self, grid, variable_states, bottom_row):
-        start_col = 2
-        # Column with path ('ladder's) between areas
-        transition_col = self.num_cols - 2
-
+    def place_gadget(self, variable_states, bottom_y):
         # Create transition to next zone
-        grid[bottom_row][transition_col] = Block('ladder')
-        grid[bottom_row + 1][transition_col] = Block('support')
-        # state[bottom_row + 2][transition_col] is already 'hard'
-        grid[bottom_row + 3][transition_col] = Block('ladder')
-        grid[bottom_row + 4][transition_col] = Block('ladder')
-        grid[bottom_row + 5][transition_col] = Block('ladder')
+        self.grid[self.grid.dim.x - 2, bottom_y].type = 'ladder'
+        self.grid[self.grid.dim.x - 2, bottom_y + 1].type = 'support'
+
+        # bottom_y + 2 is already correctly set to 'hard'
+        self.grid[self.grid.dim.x - 2, bottom_y + 3].type = 'ladder'
+        self.grid[self.grid.dim.x - 2, bottom_y + 4].type = 'ladder'
+        self.grid[self.grid.dim.x - 2, bottom_y + 5].type = 'ladder'
 
         # Carve out walkable area, skipping gadget columns
-        for i in range(start_col, transition_col, 2):
-            grid[bottom_row + 1][i] = Block('support')
-            grid[bottom_row + 3][i] = Block('support')
-            grid[bottom_row + 4][i] = Block('support')
+        for x in range(2, self.grid.dim.x - 2, 2):
+            self.grid[x, bottom_y + 1].type = 'support'
+            self.grid[x, bottom_y + 3].type = 'support'
+            self.grid[x, bottom_y + 4].type = 'support'
 
         # Place 'ladder's according to gadget structure
         for var_index in range(len(variable_states)):
-            self.place_sub_gadget(
-                grid, variable_states[var_index], bottom_row + 1, 2 * var_index + 1)
+            self.place_sub_gadget(variable_states[var_index], bottom_y + 1, 2 * var_index + 1)
 
     # reduce helper function: place a part of a gadget corresponding to the state of 1 variable
-    def place_sub_gadget(self, grid, var_state, bottom_row, col):
-        for i in range(SUB_GADGET_HEIGHT):
-            grid[bottom_row + i][col] = Block(SUB_GADGETS[var_state + 1][i])
+    def place_sub_gadget(self, var_state, bottom_y, x):
+        for delta_y in range(SUB_GADGET_HEIGHT):
+            self.grid[x, bottom_y + delta_y].type = SUB_GADGETS[var_state + 1][delta_y]
 
     # compute the popils-specific solving move sequence for the given 3SAT instance
     def solve(self, puzzle):
@@ -142,34 +128,22 @@ class Popils(Game):
 
     # vector is one of the common vectors imported from common_constants
     def update(self, vector):
-        vertical = 0
-        horizontal = 1
-        target = self.grid[self.player.row + vector[vertical]
-                        ][self.player.col + vector[horizontal]]
+        target = self.grid[self.player.pos + vector]
+
         if vector == UP:
             if target.type == 'soft':
-                for falling_row in range(self.player.row + 1, self.num_rows - 1):
-                    self.grid[falling_row][self.player.col] = self.grid[falling_row + 1][self.player.col]
-                self.grid[self.num_rows - 1][self.player.col] = Block('hard')
-                self.altered_rows = [self.player.row + 1, self.num_rows - 1]
-                self.altered_cols = [self.player.col, self.player.col]
-            elif self.grid[self.player.row][self.player.col].type == 'ladder' and (target.type != 'hard'):
+                for falling_y in range(self.player.pos.y + 1, self.grid.dim.y - 1):
+                    self.grid[self.player.pos.x, falling_y] = self.grid[self.player.pos.x, falling_y + 1]
+            elif self.grid[self.player.pos].type == 'ladder' and (target.type != 'hard'):
                 self.move(UP)
         elif target.type != 'hard':
             self.move(vector)
-            while (self.grid[self.player.row - 1][self.player.col].type == 'support' and self.grid[self.player.row][self.player.col].type == 'support'):
+            while (self.grid[self.player.pos + DOWN].type == 'support' and self.grid[self.player.pos].type == 'support'):
                 self.move(DOWN)
 
     # update helper
     def move(self, vector):
-        vertical = 0
-        horizontal = 1
+        self.player.pos += vector
 
-        self.altered_rows = [self.player.row, self.player.row]
-        self.altered_cols = [self.player.col, self.player.col]
-
-        self.player.row += vector[vertical]
-        self.player.col += vector[horizontal]
-
-        if self.grid[self.player.row][self.player.col].type == 'princess':
+        if self.grid[self.player.pos].type == 'princess':
             self.complete = True
