@@ -21,22 +21,39 @@ class Megalit(Game):
     # refer to <paper-filename>.pdf for details
     def reduce(self):
         # for now, just build a static level to test game mechanics
-        grid = Grid(20, 11, lambda: Block('air'))
+
+        # initialize to air blocks
+        self.grid = Grid(20, 11, lambda: Block('air'))
+
+        # bottom and top
         for x in range(self.grid.dim.x):
-            grid[x, 0].type = 'border'
-            grid[x, self.grid.dim.y - 1].type = 'border'
+            self.grid[x, 0].type = 'border'
+            self.grid[x, self.grid.dim.y - 1].type = 'border'
+
+        # sides
         for y in range(self.grid.dim.y):
-            grid[0, y].type = 'border'
-            grid[self.grid.dim.x - 1, y].type = 'border'
+            self.grid[0, y].type = 'border'
+            self.grid[self.grid.dim.x - 1, y].type = 'border'
+
+        # container for all slabs in the level
         self.slabs = []
-        self.slabs.append(Slab(grid, Vector(4, 1), Vector(2, 0)))
-        self.build_slab(grid, Vector(6, 1), Vector(0, 2))
-        self.build_slab(grid, Vector(8, 1), Vector(0, 2))
-        self.build_slab(grid, Vector(5, 3), Vector(3, 0))
-        self.build_slab(grid, Vector(6, 4), Vector(0, 2))
-        self.build_slab(grid, Vector(5, 6), Vector(3, 0))
-        self.player = Player([1, 1])
-        return grid
+
+        # left structure
+        self.slabs.append(Slab(self.grid, Vector(6, 1), Vector(4, 0)))
+        self.slabs.append(Slab(self.grid, Vector(6, 2), Vector(0, 2)))
+        self.slabs.append(Slab(self.grid, Vector(6, 4), Vector(3, 0)))
+        self.slabs.append(Slab(self.grid, Vector(7, 5), Vector(0, 2)))
+        self.slabs.append(Slab(self.grid, Vector(7, 7), Vector(3, 0)))
+
+        # right structure
+        self.slabs.append(Slab(self.grid, Vector(12, 7), Vector(3, 0)))
+        self.slabs.append(Slab(self.grid, Vector(14, 6), Vector(0, -2)))
+        self.slabs.append(Slab(self.grid, Vector(14, 4), Vector(3, 0)))
+        self.slabs.append(Slab(self.grid, Vector(16, 3), Vector(0, -2)))
+        self.slabs.append(Slab(self.grid, Vector(16, 1), Vector(-4, 0)))
+        
+        # player start position
+        self.player = Player(Vector(1, 1))
     
     # SOLVE - automatically generate the solution to the level
 
@@ -44,7 +61,7 @@ class Megalit(Game):
     def solve(self):
         return [UP]
 
-    # UPDATE - sUPport gameplay
+    # UPDATE - support gameplay
 
     def player_fall(self):
         while self.grid[self.player.pos + DOWN].type == 'air':
@@ -61,108 +78,114 @@ class Megalit(Game):
 
     # user has pressed the space bar to grip or release a slab
     def change_grip(self):
-        pass
+        if self.player.gripping:
+            self.grid[self.player.pos + self.player.gripping].type = 'tip'
+            self.player.gripping = ZERO
+        else:
+            if self.grid[self.player.pos + LEFT].type == 'tip':
+                self.player.gripping = LEFT
+                self.grid[self.player.pos + self.player.gripping].type = 'gripped'
+            elif self.grid[self.player.pos + RIGHT].type == 'tip':
+                self.player.gripping = RIGHT
+                self.grid[self.player.pos + self.player.gripping].type = 'gripped'
 
-    # move LEFT or right unless blocked by a slab or level edge
+    # move left or right unless blocked by a slab or level edge
     def walk(self, force):
-        pass
+        if self.grid[self.player.pos + force].type == 'air':
+            self.player.pos += force
+            self.player_fall()
 
-    # TODO test level that is solvable without unphysical jumps, utilize slab class interface, then build actual slab class
-
-    def update(self, vector):
-        force = Vector(vector[1], vector[0])
-
-        if self.player.gripping: # we are trying to move a slab
-            if force.x: # we can ignore attempts to move UP or DOWN with a slab
-                # this call may trigger a cascading collapse of slabs
-                moved, fell = self.get_slab(self.player.pos + self.player.gripping).apply(force)
-                
-                if moved: # the slab was able to move, so the player should as well
-                    self.player.pos += force
+    def update(self, force):
+        if not force: # we are changing grip
+            self.change_grip()
+        elif self.player.gripping: # we are trying to move a slab
+            if force.x: # we can ignore attempts to move up or down with a slab
+                if self.grid[self.player.pos + force + DOWN].type != 'air' and not (self.player.gripping == -1 * force and self.grid[self.player.pos + force].type != 'air'): # ensure we have solid ground to move onto
+                    slab = self.grid[self.player.pos + self.player.gripping].slab
+                    moved, fell = slab.slide(force)
                     
-                    # end the game if a slab has fallen on the player
-                    if self.grid[self.player.pos].type in ('slab', 'tip'):
-                        self.complete = True
+                    if moved: # the slab was able to move, so the player should as well
+                        self.player.pos += force
+                        
+                        # end the game if a slab has fallen on the player
+                        if self.grid[self.player.pos].type in ('slab', 'tip'):
+                            self.complete = True
 
-                    if fell: # our grip has been broken
-                        self.player.gripping = ZERO
-        elif force: # we are just trying to move
+                        if fell: # our grip has been broken
+                            print('fell')
+                            self.player.gripping = ZERO
+                            for block in slab.blocks:
+                                if block.type == 'gripped':
+                                    block.type = 'tip'
+
+                        # end the game if all slabs are on the ground
+                        self.complete = all([slab.grounded() for slab in self.slabs])
+        else: # we are just trying to move
             if force == DOWN:
                 self.player_fall()
             if force == UP:
                 self.jump()
             if force.x:
                 self.walk(force)
-        else:
-            self.change_grip()
 
-# keep track of Megalit slabs and sUPport their motion and collapse mechanics
+# keep track of Megalit slabs and support their motion and collapse mechanics
 class Slab:
     # create a slab with the specified position and add it to the grid
     def __init__(self, grid, origin, extent):
         step = extent.normalize()
-        grid[origin] = Block('tip', connections=[step])
-        for offset in range(1, int(extent.magnitude) - 1):
+        self.world = grid
+        self.blocks = []
+        self.positions = []
+        max_offset =  int(extent.magnitude) - 1
+        for offset in range(max_offset + 1):
             position = origin + (offset * step)
-            grid[position] = Block('slab', connections=[step, -1 * step])
+            grid[position] = Block('tip' if offset in (0, max_offset) else 'slab', self)
+            self.blocks.append(grid[position])
+            self.positions.append(position)
         end = origin + ((extent.magnitude - 1) * step)
-        grid[end] = Block('tip', connections=[-1 * step])
+        grid[end] = Block('tip', self)
 
-    def supported(self, slab):
-        if slab:
-            if self.grid[slab[0]].connections[0].x:
-                sUPported = False
-                for elem in slab:
-                    if self.grid[elem + DOWN].type != 'air':
-                        sUPported = True
-                return sUPported
-            return self.grid[slab[0] + DOWN].type != 'air'
-        return True
+    def dirmost(self, dir):
+        return abs(max([position @ dir for position in self.positions]))
+
+    def grounded(self):
+        return self.dirmost(DOWN) == 1
+
+    def supported(self):
+        return not all([self.world[position + DOWN].type == 'air' for position in self.positions if position.y == self.dirmost(DOWN)])
+
+    def move(self, dir):
+        vacated = [position for position in self.positions]
+        self.positions = [position + dir for position in self.positions]
+        for _, position in enumerate(self.positions):
+            self.world[position] = self.blocks[_]
+        need_air = [position for position in vacated if not position in self.positions]
+        for position in need_air:
+            self.world[position] = Block('air')
 
     # recursive
-    def fall(self, grid):
-        break_pass = True
-        while not self.supported(slab):
-            for elem in slab:
-                self.grid[elem + DOWN].type = self.grid[elem].type
-                self.grid[elem].type = 'air'
-            if break_pass:
-                break_pass = False
-                for elem in slab:
-                    candidate_slab = self.reconstruct_slab(elem + UP)
-                    if not self.supported(candidate_slab):
-                        self.slab_fall(candidate_slab)
-            slab = [elem + DOWN for elem in slab]
-        else:
-            return break_pass
+    def fall(self):
+        upper_neighbors = [self.world[position + UP].slab for position in self.positions if position.y == self.dirmost(UP) and self.world[position + UP].slab]
 
-    def fall(self, grid, force):
-        # precheck: ensure the player has solid ground to move onto and the slab is free to move
-        
-        # compute the extremal lateral extent of the slab
-        edge_dist = max([abs(self.player.x - loc.x) for loc in slab])
+        # drop this slab
+        while not self.supported():
+            self.move(DOWN)
 
-        # select the subset of blocks in the slab lying at this extremum
-        slab_edge = [loc for loc in slab if abs(self.player.x - loc.x) == edge_dist]
-
-        # for each of these blocks, verify that there is air to the side
-        blocked = all([self.grid[loc + force].type == 'air' for loc in slab_edge])
-
-        if not blocked and self.grid[self.player.loc + force + DOWN] != 'air':
-            # UPdate both grid and slab
-            for loc in reversed(slab):
-                self.grid[loc + force].type = self.grid[loc].type
-                loc += force
-
-            # trigger a potentially recursive collapse
-            if self.slab_fall(slab):
-                # slab_fall returns True if a collapse occurs
-                self.player.gripping = False
+        [neighbor.fall() for neighbor in upper_neighbors]
 
     # the player has tried to move this slab
-    def slide(self, grid, force):
-        # check if the slab can slide
-        # slide the slab
-        # if this slab sliding removed the support for another slab, apply gravity to that slab with potential recursive consequences
-        # apply gravity to self, which may also trigger a recursive collapse
-        return moved, fell
+    def slide(self, force):
+        if all([self.world[position + force].type == 'air' for position in self.positions if position.x == self.dirmost(force)]):
+            dropped = self.world[self.dirmost(-1 * force), self.dirmost(UP)].slab
+            self.move(force)
+            # if this slab sliding removed the support for another slab, apply gravity to that slab with potential recursive consequences
+            if dropped:
+                dropped.fall()
+            # apply gravity to self, which may also trigger a recursive collapse
+            fell = not self.supported()
+            self.fall()
+
+            return True, fell
+        return False, False
+# TODO falls are not being registered
+# TODO slab dropping is not working

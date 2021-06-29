@@ -88,8 +88,8 @@ else:
 
 # create game instance of the correct type
 puzzle = Puzzle(raw_input)
-game = Megalit(puzzle) if args.megalit else Popils(puzzle)
-print(game)
+game = Megalit(puzzle) if not args.megalit else Popils(puzzle)
+
 # create render surface and game clock, set window title
 screen, clock = init_pygame(
     'Megalit Reduction' if args.megalit else 'Popils Reduction')

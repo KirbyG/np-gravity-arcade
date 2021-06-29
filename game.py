@@ -21,8 +21,9 @@ class Game(ABC):
     # compute and store the reduction and solving move sequence
     def __init__(self, puzzle):
         self.complete = False
+        self.puzzle = puzzle
         self.reduce() # build the grid
-        self.solve(puzzle) # build the solution
+        self.solve() # build the solution
         self.solution_step = 0
 
     def __repr__(self):
@@ -35,14 +36,13 @@ class Game(ABC):
 
 # this class will populate the game grid. currently this is just a wrapper for a color
 class Block():
-    def __init__(self, type, connections=[]):
+    def __init__(self, type, slab=None):
         self.type = type
-        self.connections = connections
+        self.slab = slab
 
     def __setattr__(self, name, value):
         if name == 'type':
             self.identity = value
-            #print(value, self.identity)
             self.color = COLORS[self.identity]
         else:
             super().__setattr__(name, value)

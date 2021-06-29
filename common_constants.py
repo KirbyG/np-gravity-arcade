@@ -23,7 +23,7 @@ class Vector:
         self.magnitude = sqrt(self.x * self.x + self.y * self.y)
 
     def __matmul__(self, other):
-        return Vector(self.x * other.x, self.y * other.y)
+        return self.x * other.x + self.y * other.y
 
     # pure function
     def normalize(self):
@@ -60,7 +60,7 @@ class Vector:
     
     # the zero vector is false, all others are true
     def __bool__(self):
-        return self.magnitude == 0
+        return self.magnitude != 0.0
 
     def __truediv__(self, other):
         return Vector(self.x / other.x, self.y / other.y)
@@ -84,14 +84,14 @@ class Grid:
             return self.grid[int(key.x)][int(key.y)]
         else:
             x, y = key
-            return self.grid[x][y]
+            return self.grid[int(x)][int(y)]
     
     def __setitem__(self, key, value):
         if type(key) == Vector:
             self.grid[int(key.x)][int(key.y)] = value
         else:
             x, y = key
-            self.grid[x][y] = value
+            self.grid[int(x)][int(y)] = value
 
 LEFT = Vector(-1, 0)
 RIGHT = Vector(1, 0)
