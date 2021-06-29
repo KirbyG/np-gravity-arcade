@@ -36,6 +36,7 @@ class Megalit(Game):
 
         # container for all slabs in the level
         self.slabs = []
+        # level for demoing bi-driectional scrolling
         for x in range(30, 60):
             self.slabs.append(Slab(self.grid, Vector(x, 1), Vector(0, 3 * (x - 29))))
         # left structure

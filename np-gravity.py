@@ -1,4 +1,4 @@
-# this file reads user input
+# this file reads user input, first from CLI, then in the game loop
 
 # SETUP
 
@@ -37,7 +37,7 @@ else:
 
 # create game instance of the correct type
 puzzle = Puzzle(raw_input)
-game = Megalit(puzzle) if not args.megalit else Popils(puzzle)
+game = Megalit(puzzle) if args.megalit else Popils(puzzle)
 artist = Artist(game)
 
 # game loop
