@@ -88,24 +88,24 @@ class Popils(Game):
             self.grid[x, bottom_y + delta_y].type = SUB_GADGETS[var_state + 1][delta_y]
 
     # compute the popils-specific solving move sequence for the given 3SAT instance
-    def solve(self, puzzle):
+    def solve(self):
         steps = []
         # make variable assignments
-        for truthiness in puzzle.solution:
+        for truthiness in self.puzzle.solution:
             if truthiness == 1:
                 steps.append(UP)
             steps.append(RIGHT)
             steps.append(RIGHT)
         # traverse level
-        for clause in range(puzzle.num_clauses):
+        for clause in range(self.puzzle.num_clauses):
             steps.append(UP)
             steps.append(UP)
             steps.append(UP)
 
-            satisfied = puzzle.satisfied_vars(
-                puzzle.three_sat[clause], puzzle.solution)
+            satisfied = self.puzzle.satisfied_vars(
+                self.puzzle.three_sat[clause], self.puzzle.solution)
             closest = max([abs(var) for var in satisfied])
-            lateral_blocks = 2 * (puzzle.num_vars + 1 - closest)
+            lateral_blocks = 2 * (self.puzzle.num_vars + 1 - closest)
 
             # move to nearest viable 'ladder'
             for i in range(lateral_blocks):
