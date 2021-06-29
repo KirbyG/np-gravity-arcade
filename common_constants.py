@@ -68,7 +68,7 @@ class Vector:
 # wrapper for a 2d matrix allowing vector indexing
 class Grid:
     def __init__(self, *args):
-        if type(args[-1]) == type(lambda: None):
+        if callable(args[-1]):
             initializer = args[-1]
             args = args[:-1]
         else:
