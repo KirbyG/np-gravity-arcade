@@ -46,14 +46,15 @@ class Artist:
         # initial render
         self.draw()
 
-    # all params are in block units
-    # return format is [corner x, corner y, width, height]
-    
-    # note that the y coordinate is inverted because pygame considers the upper
+    # all params are in block units   
+    # Note: the y coordinate is inverted because pygame considers the upper
     # left corner of the window to be the origin, while all logical objects
     # rely on a more standard coordinate system originating in the lower left
     def grid_to_px(self, x, y, offset):
-        return [(x - offset.x) * self.BLOCK_DIM + 1, (self.WINDOW_BLOCKS.y - 1 - (y - offset.y)) * self.BLOCK_DIM + 1, self.BLOCK_DIM - 1, self.BLOCK_DIM - 1]
+        corner_x = (x - offset.x) * self.BLOCK_DIM + 1
+        corner_y = (self.WINDOW_BLOCKS.y - 1 - (y - offset.y)) * self.BLOCK_DIM + 1
+        width = height = self.BLOCK_DIM - 1
+        return [corner_x, corner_y, width, height]
 
     def draw(self):
         # compute the offset vector
