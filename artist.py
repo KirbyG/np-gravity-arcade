@@ -34,7 +34,7 @@ class Artist:
         self.WINDOW_DIM = Vector(round(window_width), round(window_height))
         
         # the number of blocks that will fit in a window at a time
-        self.WINDOW_BLOCKS = Vector(int(round(self.WINDOW_DIM.x / self.BLOCK_DIM)), int(round(self.WINDOW_DIM.y / self.BLOCK_DIM)))
+        self.WINDOW_BLOCKS = Vector(round(self.WINDOW_DIM.x / self.BLOCK_DIM), round(self.WINDOW_DIM.y / self.BLOCK_DIM))
         
         # position of the player on the screen while scrolling is active
         self.CENTER = Vector(int(self.WINDOW_BLOCKS.x / 2), int(self.WINDOW_BLOCKS.y / 2))
