@@ -1,15 +1,13 @@
 from common_constants import VARS_PER_CLAUSE
 
-# Default 3SAT instance. Will be ignored if user provides alternative
-DEFAULT_3SAT = '1 2 3 -2 -3 4 1 -3 6 -1 4 5 2 -4 -6'
 
 # #SAT instance container and associated methods
 class Puzzle:
-    def __init__(self, raw_instance):
-        self.three_sat = self.parse(raw_instance)
+    def __init__(self, filepath):
+        self.three_sat = self.parse(filepath)
         self.num_clauses = len(self.three_sat)
         self.expanded_form = self.expand()
-        self.solution = self.find_solution()
+        self.solution = self.solve()
 
     # convert 3SAT to an expanded form useful in the popils and megalit reductions
     def expand(self):
@@ -29,14 +27,29 @@ class Puzzle:
         return "CNF form of 3SAT: " + " ^ ".join(
             ["(" + " V ".join(clause) + ")" for clause in self.three_sat])
 
-    def parse(self, raw_input):
-        # Attempt to convert input to a list of integers
-        try:
-            array_form = [int(el) for el in str.split(raw_input)]
-        except:
-            print(
-                "WARNING: Malformed input. Default 3SAT instance has been used instead.")
-            array_form = [int(el) for el in str.split(DEFAULT_3SAT)]
+    def parse(self, filepath):
+        with open(filepath) as file:
+            raw_input = ""
+            for line in file:
+                line = line.strip()  # remove leading/trailing whitespace
+                if line.startswith('c'):
+                    # Ignore comment lines
+                    continue
+                elif line.startswith('p'):
+                    # save problem info
+                    _, _, self.num_vars, self.num_clauses = line.split()
+                    print(
+                        f"DEBUG | Vars: {self.num_vars}, Clauses: {self.num_clauses}")
+                elif line.endswith('0'):
+                    # process clause
+                    raw_input += line[:-2] + " "  # Remove the zero
+                else:
+                    # Anything else is useless
+                    continue
+        print("DEBUG | " + raw_input)
+
+        # Convert input to a list of integers
+        array_form = [int(el) for el in str.split(raw_input)]
 
         # Truncate input if there are variables that don't form a full clause
         extra_inputs = len(array_form) % VARS_PER_CLAUSE
@@ -68,7 +81,7 @@ class Puzzle:
 
         return reduced_form
 
-    def find_solution(self):
+    def solve(self):
         # compute vector sequence
         # find the solving variable assignment by brute force
         for raw_guess in range(2 ** self.num_vars):
@@ -87,9 +100,9 @@ class Puzzle:
         return []
 
     # purely mathematical helper function mapping -R -> -1, R -> 1
-    def _sign(self, num):
+    def sign(self, num):
         return int(abs(num) / num)
 
     # given a clause and variable assignment, return the satisfied variables in that clause
     def satisfied_vars(self, clause, assignment):
-        return [var for var in clause if assignment[abs(var) - 1] * self._sign(var) == 1]
+        return [var for var in clause if assignment[abs(var) - 1] * self.sign(var) == 1]

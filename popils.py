@@ -2,7 +2,6 @@ from game import Game, Player, Block
 from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS, Vector, Grid
 
 
-
 # popils-specific gadgets
 SUB_GADGET_NEGATED = ['ladder', 'ladder', 'support', 'ladder']
 SUB_GADGET_ABSENT = ['ladder', 'support', 'ladder', 'support']
@@ -13,6 +12,7 @@ SUB_GADGETS = [SUB_GADGET_NEGATED, SUB_GADGET_ABSENT, SUB_GADGET_PRESENT]
 SUB_GADGET_HEIGHT = 4
 GADGET_HEIGHT = 6
 
+
 class Popils(Game):
     def __init__(self, puzzle):
         self.puzzle = puzzle
@@ -22,7 +22,7 @@ class Popils(Game):
     def reduce(self):
         # set dimensions of grid and initialize
         x_dim = 3 + (2 * self.puzzle.num_vars)
-        y_dim =  6 * (self.puzzle.num_clauses + 1)
+        y_dim = 6 * (self.puzzle.num_clauses + 1)
         self.grid = Grid(x_dim, y_dim, lambda: Block('hard'))
 
         # build static level features
@@ -50,9 +50,8 @@ class Popils(Game):
         # Stop princess from walking
         self.grid[self.grid.dim.x - 2, self.grid.dim.y - 3].type = 'soft'
 
-
-
     # reduce helper function
+
     def build_clauses(self):
         bottom_y = 3
 
@@ -80,32 +79,34 @@ class Popils(Game):
 
         # Place 'ladder's according to gadget structure
         for var_index in range(len(variable_states)):
-            self.place_sub_gadget(variable_states[var_index], bottom_y + 1, 2 * var_index + 1)
+            self.place_sub_gadget(
+                variable_states[var_index], bottom_y + 1, 2 * var_index + 1)
 
     # reduce helper function: place a part of a gadget corresponding to the state of 1 variable
     def place_sub_gadget(self, var_state, bottom_y, x):
         for delta_y in range(SUB_GADGET_HEIGHT):
-            self.grid[x, bottom_y + delta_y].type = SUB_GADGETS[var_state + 1][delta_y]
+            self.grid[x, bottom_y +
+                      delta_y].type = SUB_GADGETS[var_state + 1][delta_y]
 
     # compute the popils-specific solving move sequence for the given 3SAT instance
-    def solve(self, puzzle):
+    def solve(self):
         steps = []
         # make variable assignments
-        for truthiness in puzzle.solution:
+        for truthiness in self.puzzle.solution:
             if truthiness == 1:
                 steps.append(UP)
             steps.append(RIGHT)
             steps.append(RIGHT)
         # traverse level
-        for clause in range(puzzle.num_clauses):
+        for clause in range(self.puzzle.num_clauses):
             steps.append(UP)
             steps.append(UP)
             steps.append(UP)
 
-            satisfied = puzzle.satisfied_vars(
-                puzzle.three_sat[clause], puzzle.solution)
+            satisfied = self.puzzle.satisfied_vars(
+                self.puzzle.three_sat[clause], self.puzzle.solution)
             closest = max([abs(var) for var in satisfied])
-            lateral_blocks = 2 * (puzzle.num_vars + 1 - closest)
+            lateral_blocks = 2 * (self.puzzle.num_vars + 1 - closest)
 
             # move to nearest viable 'ladder'
             for i in range(lateral_blocks):
@@ -133,7 +134,8 @@ class Popils(Game):
         if vector == UP:
             if target.type == 'soft':
                 for falling_y in range(self.player.pos.y + 1, self.grid.dim.y - 1):
-                    self.grid[self.player.pos.x, falling_y] = self.grid[self.player.pos.x, falling_y + 1]
+                    self.grid[self.player.pos.x,
+                              falling_y] = self.grid[self.player.pos.x, falling_y + 1]
             elif self.grid[self.player.pos].type == 'ladder' and (target.type != 'hard'):
                 self.move(UP)
         elif target.type != 'hard':
