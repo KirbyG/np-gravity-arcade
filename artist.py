@@ -58,7 +58,9 @@ class Artist:
 
     def draw(self):
         # compute the offset vector
-        offset = Vector(min(self.game.grid.dim.x - self.WINDOW_BLOCKS.x, max(0, self.game.player.pos.x - self.CENTER.x)), min(self.game.grid.dim.y - self.WINDOW_BLOCKS.y, max(0, self.game.player.pos.y - self.CENTER.y)))
+        x_offset = min(self.game.grid.dim.x - self.WINDOW_BLOCKS.x, max(0, self.game.player.pos.x - self.CENTER.x))
+        y_offset = min(self.game.grid.dim.y - self.WINDOW_BLOCKS.y, max(0, self.game.player.pos.y - self.CENTER.y))
+        offset = Vector(x_offset, y_offset)
         
         # set the background to black
         pygame.draw.rect(self.screen, (0, 0 ,0), [0, 0, self.WINDOW_DIM.x, self.WINDOW_DIM.y])
