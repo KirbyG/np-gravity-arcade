@@ -29,7 +29,9 @@ class Artist:
         self.BLOCK_DIM = max(MIN_BLOCK_DIM, min(FITTED_BLOCK_DIM()))
 
         # limit the max window dimension to fit on the display, and ensure it multiplies the block dimension
-        self.WINDOW_DIM = Vector(int(round(min(SCREEN_DIM.x - (SCREEN_DIM.x % self.BLOCK_DIM), self.BLOCK_DIM * game.grid.dim.x))), int(round(min(SCREEN_DIM.y - (SCREEN_DIM.y % self.BLOCK_DIM), self.BLOCK_DIM * game.grid.dim.y))))
+        window_width = min(SCREEN_DIM.x - (SCREEN_DIM.x % self.BLOCK_DIM), self.BLOCK_DIM * game.grid.dim.x)
+        window_height = min(SCREEN_DIM.y - (SCREEN_DIM.y % self.BLOCK_DIM), self.BLOCK_DIM * game.grid.dim.y)
+        self.WINDOW_DIM = Vector(round(window_width), round(window_height))
         
         # the number of blocks that will fit in a window at a time
         self.WINDOW_BLOCKS = Vector(int(round(self.WINDOW_DIM.x / self.BLOCK_DIM)), int(round(self.WINDOW_DIM.y / self.BLOCK_DIM)))
