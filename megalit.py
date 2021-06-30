@@ -56,9 +56,101 @@ class Megalit(Game):
     
     # SOLVE - automatically generate the solution to the level
 
+    def crawl_under_table(self, dir, table_width=3, splay=0):
+        rev = -1 * dir
+        leg_gap = ((table_width - 3) / 2) - splay
+
+        # pull the first leg out from under the table
+        self.solution.extend([dir] * leg_gap)
+        self.solution.append(ZERO)
+        self.solution.append([rev] * (leg_gap + 2))
+        self.solution.append(ZERO)
+
+        # climb over the first leg
+        self.solution.append(UP)
+        self.solution.extend([dir] * 2)
+
+        # replace the first leg
+        self.solution.append(ZERO)
+        self.solution.extend([dir] * (leg_gap + 2))
+        self.solution.append(ZERO)
+        
+        # push the second leg out from under the table
+        self.solution.append(ZERO)
+        self.solution.extend([dir] * (leg_gap + 2))
+
+        # climb over the second leg
+        self.solution.append(ZERO)
+        self.solution.append(UP)
+        self.solution.extend([dir] * 2)
+        
+        # replace the second leg
+        self.solution.append(ZERO)
+        self.solution.extend([rev] * (leg_gap + 2))
+        self.solution.append(ZERO)
+
+        # walk out from under the table
+        self.solution.extend([dir] * leg_gap)
+
     # the solving move sequence for Megalit is significantly longer than for Popils
     def solve(self):
-        return [UP]
+        self.solution =  []
+
+        # set variables
+        for setting in self.puzzle.solution:
+            # approach the table
+            self.solution.extend([RIGHT] * 2)
+
+            # drop the tower if necessary
+            if setting == 1:
+                self.solution.append(UP)
+                self.solution.extend([RIGHT] * 2)
+                self.solution.append(ZERO)
+                self.solution.append(LEFT)
+                self.solution.append(ZERO)
+                self.solution.append(LEFT)
+            
+            # crawl under the table
+            self.crawl_under_table(table_width=5)
+            
+            # approach the climbing tower
+            self.solution.extend([RIGHT] * 3)
+
+            # crawl under the climbing tower
+            self.crawl_under_table(table_width=19, splay=2)
+
+            # get in position for the next iteration
+            self.solution.append(RIGHT)
+
+        # climb onto the first level of the tower
+
+        # steal a table leg for use as a trampoline
+        self.solution.extend([RIGHT] * 3)
+        self.solution.append(ZERO)
+        self.solution.extend([LEFT] * 4)
+        self.solution.append(ZERO)
+        self.solution.append(UP)
+        self.solution.extend([RIGHT] * 2)
+        self.solution.append(ZERO)
+        self.solution.append(LEFT)
+        self.solution.append(ZERO)
+        
+        # jump on the trampoline
+        self.solution.extend([UP, LEFT] * 2)
+
+        # establish position tracking variables
+        tower = self.puzzle.num_clauses - 2
+        side = RIGHT
+
+        # solve each clause
+        for clause in self.puzzle.expanded_form:
+            # get to the main floor
+
+            # crawl under the support table
+            self.solution.extend([-1 * side] * 2)
+            self.crawl_under_table(LEFT)
+
+            # 
 
     # UPDATE - support gameplay
 

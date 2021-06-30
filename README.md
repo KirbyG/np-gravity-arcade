@@ -10,16 +10,21 @@ TODO (jacob)
     Make README more useful
 
 TODO (kirby)
-    blocks can see their slabs
-    scrolling
-    class breakouts
     megalit
-        mechanics
-        reduction (fix obvious issue first)
+        reduction
+            grip choice historesis
+            allow superknight jumps
+            fix the solver stub to manually fall
+            add antimonkeybusiness potholes
+            cut the corners
         solver
 
 TODO (both)
     fix Game repr
     allow exit during solve
     refactor code (comments and organization)
+        i'm forgetting what the design pattern is called, but i believe artist
+        might be better as a draw function returned from a wrapper function
+        that first instantiates all the constants and pygame resources. keeping
+        this in its own module still seems desirable
     write the actual paper
