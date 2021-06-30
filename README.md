@@ -15,8 +15,9 @@ TODO (kirby)
             grip choice historesis
             allow superknight jumps
             fix the solver stub to manually fall
-            add antimonkeybusiness potholes
-            cut the corners
+            solver stub takes antimonkeybusiness potholes into account
+            solver stub needs fewer steps to pass under the towers
+            slab graphical clarity improvements
         solver
 
 TODO (both)
@@ -27,4 +28,24 @@ TODO (both)
         might be better as a draw function returned from a wrapper function
         that first instantiates all the constants and pygame resources. keeping
         this in its own module still seems desirable
-    write the actual paper
+    write the actual paper (we need to start by skimming a few other papers that do similar proofs. without seeing how others do it, the following would be my approach to the structure). clarity is probably the most important property to strive for. we also need sufficient rigor in the megalit proof in particular
+        abstract
+        introduction
+            background on the idea behind proving games are in NP via reduction to level design (ie, what do we actually mean when we say a game is NP-complete)
+        applications of the metatheorem
+            popils
+                background of the game, which features we use
+                specifying the metatheorem gadgets
+            megalit
+                background of the game, what we assume is allowed (very long slabs, starting above the ground)
+                specifying the metatheorem gadgets (trickier than for popils because we need to include a discussion of why the player can't cheat)
+                the bulldozer cleanup phase
+        metatheorem
+            3SAT expanded form
+            using gravity as the long range effect
+            generalized schematic proof using abstract gadgets
+        other stuff (???)
+            references
+            conclusion
+            description of github project
+            possibilities for extension
