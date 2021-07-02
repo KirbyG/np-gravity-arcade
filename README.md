@@ -24,10 +24,9 @@ By convention, Boolean Satisfiability problems in CNF form have a `.cnf` extensi
 * scrolling
 * class breakouts
 * megalit
-	* mechanics
-	* reduction (fix obvious issue first)
+	* comment scrolling code
+	* reduction (fix obvious issue first in g-sheets)
 	* solver
-
 ### both
 * fix Game repr
 * allow exit during solve

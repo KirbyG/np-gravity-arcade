@@ -22,7 +22,7 @@ class Megalit(Game):
         # for now, just build a static level to test game mechanics
 
         # initialize to air blocks
-        self.grid = Grid(20, 11, lambda: Block('air'))
+        self.grid = Grid(180, 100, lambda: Block('air'))
 
         # bottom and top
         for x in range(self.grid.dim.x):
@@ -36,9 +36,11 @@ class Megalit(Game):
 
         # container for all slabs in the level
         self.slabs = []
-
+        # level for demoing bi-directional scrolling
+        for x in range(30, 60):
+            self.slabs.append(Slab(self.grid, Vector(x, 1), Vector(0, 3 * (x - 29))))
         # left structure
-        self.slabs.append(Slab(self.grid, Vector(6, 1), Vector(4, 0)))
+        '''self.slabs.append(Slab(self.grid, Vector(6, 1), Vector(4, 0)))
         self.slabs.append(Slab(self.grid, Vector(6, 2), Vector(0, 2)))
         self.slabs.append(Slab(self.grid, Vector(6, 4), Vector(3, 0)))
         self.slabs.append(Slab(self.grid, Vector(7, 5), Vector(0, 2)))
@@ -49,7 +51,7 @@ class Megalit(Game):
         self.slabs.append(Slab(self.grid, Vector(14, 6), Vector(0, -2)))
         self.slabs.append(Slab(self.grid, Vector(14, 4), Vector(3, 0)))
         self.slabs.append(Slab(self.grid, Vector(16, 3), Vector(0, -2)))
-        self.slabs.append(Slab(self.grid, Vector(16, 1), Vector(-4, 0)))
+        self.slabs.append(Slab(self.grid, Vector(16, 1), Vector(-4, 0)))'''
         
         # player start position
         self.player = Player(Vector(1, 1))
