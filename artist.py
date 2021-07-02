@@ -1,6 +1,6 @@
 import pygame
 import os
-from common_constants import Vector
+from common_constants import Vector, COLORS
 
 # in charge of drawing Game objects
 class Artist:
@@ -63,7 +63,7 @@ class Artist:
         offset = Vector(x_offset, y_offset)
         
         # set the background to black
-        pygame.draw.rect(self.screen, (0, 0 ,0), [0, 0, self.WINDOW_DIM.x, self.WINDOW_DIM.y])
+        pygame.draw.rect(self.screen, COLORS['background'], [0, 0, self.WINDOW_DIM.x, self.WINDOW_DIM.y])
         
         # draw the subgrid
         for x in range(offset.x, offset.x + self.WINDOW_BLOCKS.x):
