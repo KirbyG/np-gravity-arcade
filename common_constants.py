@@ -10,9 +10,10 @@ COLORS = {
           'support': (255, 255, 255),
           'air': (255, 255, 255),
           'slab': (128, 128, 128),
-          'border': (0, 0, 0),
+          'border': (0, 200, 0),
           'tip':  (110,  110, 110),
-          'gripped': (50, 50, 50)
+          'gripped': (50, 50, 50),
+          'background': (0, 0, 0)
         }
 
 class Vector:
@@ -68,7 +69,7 @@ class Vector:
 # wrapper for a 2d matrix allowing vector indexing
 class Grid:
     def __init__(self, *args):
-        if type(args[-1]) == type(lambda: None):
+        if callable(args[-1]):
             initializer = args[-1]
             args = args[:-1]
         else:

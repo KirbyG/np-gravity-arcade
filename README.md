@@ -10,12 +10,9 @@ TODO (jacob)
     Make README more useful
 
 TODO (kirby)
-    blocks can see their slabs
-    scrolling
-    class breakouts
     megalit
-        mechanics
-        reduction (fix obvious issue first)
+        comment scrolling code
+        reduction (fix obvious issue first in g-sheets)
         solver
 
 TODO (both)
