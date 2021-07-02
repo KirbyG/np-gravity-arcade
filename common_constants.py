@@ -12,7 +12,8 @@ COLORS = {
           'slab': (128, 128, 128),
           'border': (0, 200, 0),
           'tip':  (110,  110, 110),
-          'gripped': (50, 50, 50)
+          'gripped': (50, 50, 50),
+          'background': (0, 0, 0)
         }
 
 class Vector:
