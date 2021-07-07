@@ -55,8 +55,10 @@ where `¬` is the logical negation symbol.
 ## Resources
 * [3SAT Example Library](https://www.cs.ubc.ca/%7Ehoos/SATLIB/benchm.html)
 * [Megalit Reduction Concept](https://docs.google.com/spreadsheets/d/1xu297SNoUu8qFG4eRkkXsX5r0zjv5CCPZEqo3ZCrlRM/edit?usp=sharing)
-* [*Popils* (for the Sega Game Gear)](https://en.wikipedia.org/wiki/Popils)
-* [*Megalit* (for the Nintendo Game Boy)](https://en.wikipedia.org/wiki/Megalit)
+* [*Popils* Wiki Entry](https://en.wikipedia.org/wiki/Popils) 
+	/ [Popils Gameplay](https://www.youtube.com/watch?v=wsvmqVdh3Do)
+* [*Megalit* Wiki Entry](https://en.wikipedia.org/wiki/Megalit) 
+	/ [Megalit Gameplay](https://www.youtube.com/watch?v=2ccKBg8pZXk)
 
 
 # (Non-exhaustive) TODO List
@@ -73,7 +75,7 @@ where `¬` is the logical negation symbol.
 	* reduction (fix obvious issue first in g-sheets)
 	* solver
 ### both
-* fix Game repr
 * allow exit during solve
+* prevent automatic puzzle solving for large instances
 * refactor code (comments and organization)
 * write the actual paper
