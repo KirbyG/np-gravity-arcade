@@ -1,5 +1,5 @@
-from game import Game, Player, Block
-from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS, Vector, Grid
+from game import Game, Player, Block, Grid
+from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS, Vector
 
 
 # popils-specific gadgets
@@ -40,7 +40,7 @@ class Popils(Game):
         self.grid[self.grid.dim.x - 2, self.player.pos.y].type = 'ladder'
 
         for x in range(self.player.pos.x, self.grid.dim.x - 3, 2):
-            self.grid[x, 2].type = 'soft'
+            self.grid[x, 2].type = 'breakable'
 
         self.grid[self.grid.dim.x - 2, 2].type = 'ladder'
 
@@ -48,7 +48,7 @@ class Popils(Game):
         self.grid[self.grid.dim.x - 2, self.grid.dim.y - 2].type = 'princess'
 
         # Stop princess from walking
-        self.grid[self.grid.dim.x - 2, self.grid.dim.y - 3].type = 'soft'
+        self.grid[self.grid.dim.x - 2, self.grid.dim.y - 3].type = 'breakable'
 
     # reduce helper function
 
@@ -132,7 +132,7 @@ class Popils(Game):
         target = self.grid[self.player.pos + vector]
 
         if vector == UP:
-            if target.type == 'soft':
+            if target.type == 'breakable':
                 for falling_y in range(self.player.pos.y + 1, self.grid.dim.y - 1):
                     self.grid[self.player.pos.x,
                               falling_y] = self.grid[self.player.pos.x, falling_y + 1]

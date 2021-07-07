@@ -1,15 +1,13 @@
 # this file contains the Megalit class and its Slab helper class
 
-from game import Game, Block, Player
-from common_constants import LEFT, RIGHT, UP, DOWN, ZERO, Vector, Grid
+from game import Game, Block, Player, Grid
+from common_constants import LEFT, RIGHT, UP, DOWN, ZERO, Vector
 from math import sqrt
 
 # Megalit was developed by the ASCII Corporation for the Gameboy
 
 # we use slab to refer to a 1 by x or x by 1 Megalit gameplay object
 
-# see https://www.youtube.com/watch?v=2ccKBg8pZXk for gameplay footage
-# or https://en.wikipedia.org/wiki/Megalit for a general overview
 
 class Megalit(Game):
     def __init__(self, puzzle):
@@ -38,7 +36,8 @@ class Megalit(Game):
         self.slabs = []
         # level for demoing bi-directional scrolling
         for x in range(30, 60):
-            self.slabs.append(Slab(self.grid, Vector(x, 1), Vector(0, 3 * (x - 29))))
+            self.slabs.append(
+                Slab(self.grid, Vector(x, 1), Vector(0, 3 * (x - 29))))
         # left structure
         '''self.slabs.append(Slab(self.grid, Vector(6, 1), Vector(4, 0)))
         self.slabs.append(Slab(self.grid, Vector(6, 2), Vector(0, 2)))
@@ -52,10 +51,10 @@ class Megalit(Game):
         self.slabs.append(Slab(self.grid, Vector(14, 4), Vector(3, 0)))
         self.slabs.append(Slab(self.grid, Vector(16, 3), Vector(0, -2)))
         self.slabs.append(Slab(self.grid, Vector(16, 1), Vector(-4, 0)))'''
-        
+
         # player start position
         self.player = Player(Vector(1, 1))
-    
+
     # SOLVE - automatically generate the solution to the level
 
     # the solving move sequence for Megalit is significantly longer than for Popils
@@ -69,7 +68,8 @@ class Megalit(Game):
             self.player.pos += DOWN
 
     def jump(self):
-        if self.grid[self.player.pos + DOWN].type != 'air': # no double jumps ):
+        # no double jumps ):
+        if self.grid[self.player.pos + DOWN].type != 'air':
             jump_height = 0
             max_jump_height = 3
             # stop when we hit a ceiling or max jump height
@@ -85,10 +85,12 @@ class Megalit(Game):
         else:
             if self.grid[self.player.pos + LEFT].type == 'tip':
                 self.player.gripping = LEFT
-                self.grid[self.player.pos + self.player.gripping].type = 'gripped'
+                self.grid[self.player.pos +
+                          self.player.gripping].type = 'gripped'
             elif self.grid[self.player.pos + RIGHT].type == 'tip':
                 self.player.gripping = RIGHT
-                self.grid[self.player.pos + self.player.gripping].type = 'gripped'
+                self.grid[self.player.pos +
+                          self.player.gripping].type = 'gripped'
 
     # move left or right unless blocked by a slab or level edge
     def walk(self, force):
@@ -97,22 +99,24 @@ class Megalit(Game):
             self.player_fall()
 
     def update(self, force):
-        if not force: # we are changing grip
+        if not force:  # we are changing grip
             self.change_grip()
-        elif self.player.gripping: # we are trying to move a slab
-            if force.x: # we can ignore attempts to move up or down with a slab
-                if self.grid[self.player.pos + force + DOWN].type != 'air' and not (self.player.gripping == -1 * force and self.grid[self.player.pos + force].type != 'air'): # ensure we have solid ground to move onto
-                    slab = self.grid[self.player.pos + self.player.gripping].slab
+        elif self.player.gripping:  # we are trying to move a slab
+            if force.x:  # we can ignore attempts to move up or down with a slab
+                # ensure we have solid ground to move onto
+                if self.grid[self.player.pos + force + DOWN].type != 'air' and not (self.player.gripping == -1 * force and self.grid[self.player.pos + force].type != 'air'):
+                    slab = self.grid[self.player.pos +
+                                     self.player.gripping].slab
                     moved, fell = slab.slide(force)
 
-                    if moved: # the slab was able to move, so the player should as well
+                    if moved:  # the slab was able to move, so the player should as well
                         self.player.pos += force
-                        
+
                         # end the game if a slab has fallen on the player
                         if self.grid[self.player.pos].type in ('slab', 'tip'):
                             self.complete = True
 
-                        if fell: # our grip has been broken
+                        if fell:  # our grip has been broken
                             self.player.gripping = ZERO
                             for block in slab.blocks:
                                 if block.type == 'gripped':
@@ -122,13 +126,14 @@ class Megalit(Game):
                         if all([slab.grounded() for slab in self.slabs]):
                             self.complete = True
 
-        else: # we are just trying to move
+        else:  # we are just trying to move
             if force == DOWN:
                 self.player_fall()
             if force == UP:
                 self.jump()
             if force.x:
                 self.walk(force)
+
 
 # keep track of Megalit slabs and support their motion and collapse mechanics
 class Slab:
@@ -138,10 +143,11 @@ class Slab:
         self.world = grid
         self.blocks = []
         self.positions = []
-        max_offset =  int(extent.magnitude) - 1
+        max_offset = int(extent.magnitude) - 1
         for offset in range(max_offset + 1):
             position = origin + (offset * step)
-            grid[position] = Block('tip' if offset in (0, max_offset) else 'slab', self)
+            grid[position] = Block('tip' if offset in (
+                0, max_offset) else 'slab', self)
             self.blocks.append(grid[position])
             self.positions.append(position)
         end = origin + ((extent.magnitude - 1) * step)
@@ -161,13 +167,15 @@ class Slab:
         self.positions = [position + dir for position in self.positions]
         for _, position in enumerate(self.positions):
             self.world[position] = self.blocks[_]
-        need_air = [position for position in vacated if not position in self.positions]
+        need_air = [
+            position for position in vacated if not position in self.positions]
         for position in need_air:
             self.world[position] = Block('air')
 
     # recursive
     def fall(self):
-        upper_neighbors = [self.world[position + UP].slab for position in self.positions if position.y == self.dirmost(UP) and self.world[position + UP].slab]
+        upper_neighbors = [self.world[position + UP].slab for position in self.positions if position.y ==
+                           self.dirmost(UP) and self.world[position + UP].slab]
 
         # drop this slab
         if not self.supported():
@@ -175,7 +183,7 @@ class Slab:
 
         if not self.supported():
             for x in range(self.world.dim.x):
-                for y in range (self.world.dim.y):
+                for y in range(self.world.dim.y):
                     self.world[x, y].type = 'slab'
             return
 
@@ -184,7 +192,8 @@ class Slab:
     # the player has tried to move this slab
     def slide(self, force):
         if all([self.world[position + force].type == 'air' for position in self.positions if position.x == self.dirmost(force)]):
-            dropped = self.world[self.dirmost(-1 * force), self.dirmost(UP) + 1].slab
+            dropped = self.world[self.dirmost(-1 * force),
+                                 self.dirmost(UP) + 1].slab
             self.move(force)
             # if this slab sliding removed the support for another slab, apply gravity to that slab with potential recursive consequences
             if dropped:
@@ -192,6 +201,6 @@ class Slab:
             # apply gravity to self, which may also trigger a recursive collapse
             fell = not self.supported()
             self.fall()
-            
+
             return True, fell
         return False, False
