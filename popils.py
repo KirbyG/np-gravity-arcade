@@ -1,6 +1,5 @@
-from game import Game, Player, Block
-from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS, Vector, Grid
-
+from game import Game, Player, Block, Grid
+from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS, Vector
 
 
 # popils-specific gadgets
@@ -13,6 +12,7 @@ SUB_GADGETS = [SUB_GADGET_NEGATED, SUB_GADGET_ABSENT, SUB_GADGET_PRESENT]
 SUB_GADGET_HEIGHT = 4
 GADGET_HEIGHT = 6
 
+
 class Popils(Game):
     def __init__(self, puzzle):
         self.puzzle = puzzle
@@ -22,7 +22,7 @@ class Popils(Game):
     def reduce(self):
         # set dimensions of grid and initialize
         x_dim = 3 + (2 * self.puzzle.num_vars)
-        y_dim =  6 * (self.puzzle.num_clauses + 1)
+        y_dim = 6 * (self.puzzle.num_clauses + 1)
         self.grid = Grid(x_dim, y_dim, lambda: Block('hard'))
 
         # build static level features
@@ -40,7 +40,7 @@ class Popils(Game):
         self.grid[self.grid.dim.x - 2, self.player.pos.y].type = 'ladder'
 
         for x in range(self.player.pos.x, self.grid.dim.x - 3, 2):
-            self.grid[x, 2].type = 'soft'
+            self.grid[x, 2].type = 'breakable'
 
         self.grid[self.grid.dim.x - 2, 2].type = 'ladder'
 
@@ -48,11 +48,10 @@ class Popils(Game):
         self.grid[self.grid.dim.x - 2, self.grid.dim.y - 2].type = 'princess'
 
         # Stop princess from walking
-        self.grid[self.grid.dim.x - 2, self.grid.dim.y - 3].type = 'soft'
-
-
+        self.grid[self.grid.dim.x - 2, self.grid.dim.y - 3].type = 'breakable'
 
     # reduce helper function
+
     def build_clauses(self):
         bottom_y = 3
 
@@ -80,12 +79,14 @@ class Popils(Game):
 
         # Place 'ladder's according to gadget structure
         for var_index in range(len(variable_states)):
-            self.place_sub_gadget(variable_states[var_index], bottom_y + 1, 2 * var_index + 1)
+            self.place_sub_gadget(
+                variable_states[var_index], bottom_y + 1, 2 * var_index + 1)
 
     # reduce helper function: place a part of a gadget corresponding to the state of 1 variable
     def place_sub_gadget(self, var_state, bottom_y, x):
         for delta_y in range(SUB_GADGET_HEIGHT):
-            self.grid[x, bottom_y + delta_y].type = SUB_GADGETS[var_state + 1][delta_y]
+            self.grid[x, bottom_y +
+                      delta_y].type = SUB_GADGETS[var_state + 1][delta_y]
 
     # compute the popils-specific solving move sequence for the given 3SAT instance
     def solve(self):
@@ -131,9 +132,10 @@ class Popils(Game):
         target = self.grid[self.player.pos + vector]
 
         if vector == UP:
-            if target.type == 'soft':
+            if target.type == 'breakable':
                 for falling_y in range(self.player.pos.y + 1, self.grid.dim.y - 1):
-                    self.grid[self.player.pos.x, falling_y] = self.grid[self.player.pos.x, falling_y + 1]
+                    self.grid[self.player.pos.x,
+                              falling_y] = self.grid[self.player.pos.x, falling_y + 1]
             elif self.grid[self.player.pos].type == 'ladder' and (target.type != 'hard'):
                 self.move(UP)
         elif target.type != 'hard':
