@@ -65,6 +65,7 @@ where `¬` is the logical negation symbol.
 ### jacob
 * add more example instances
 * optimize input parsing logic
+* fix IndexError for non-default examples
 
 ### kirby
 * blocks can see their slabs

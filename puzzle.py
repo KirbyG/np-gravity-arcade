@@ -106,7 +106,7 @@ class Puzzle:
                 print("\n3SAT Solution found!")
                 for i in range(len(truth_assignment)):
                     print(
-                        f"x{i + 1} = {truth_assignment[i]}", end=", " if i != len(truth_assignment) - 1 else "", flush=True)
+                        f"x{i + 1} = {truth_assignment[i]}", end=", " if i != len(truth_assignment) - 1 else "\n\n", flush=True)
                 return guess
 
         # If we made it here, none of the guesses were valid solutions to the problem
