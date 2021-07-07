@@ -14,9 +14,8 @@ from common_constants import LEFT, RIGHT, DOWN, UP, ZERO, Vector
 # default 3SAT instance. Will be ignored if user provides alternative
 DEFAULT_3SAT = "examples/default.cnf"
 
+
 # handle input from the command line
-
-
 def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', dest='filename',
@@ -27,6 +26,9 @@ def parse_arguments():
                         help='reduce 3SAT to Megalit instead of Popils')
     return parser.parse_args()
 
+
+# add line break after pygame importing output
+print()
 
 # read in 3SAT problem
 args = parse_arguments()

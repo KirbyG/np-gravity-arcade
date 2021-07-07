@@ -5,7 +5,10 @@ from common_constants import VARS_PER_CLAUSE
 class Puzzle:
     def __init__(self, filepath):
         self.three_sat = self.parse(filepath)
-        self.num_clauses = len(self.three_sat)
+        # num_clauses & num_vars are saved during parse()
+        self.num_vars = int(self.num_vars)
+        self.num_clauses = int(self.num_clauses)
+        print("Reducing from: " + str(self))
         self.expanded_form = self.expand()
         self.solution = self.solve()
 
@@ -24,8 +27,14 @@ class Puzzle:
         return expansion
 
     def __repr__(self):
-        return "CNF form of 3SAT: " + " ^ ".join(
-            ["(" + " V ".join(clause) + ")" for clause in self.three_sat])
+        result = []
+        str_three_sat = [[f"¬x{abs(var)}" if var < 0 else f"x{var}"
+                          for var in clause]
+                         for clause in self.three_sat]
+        for clause in str_three_sat:
+            vars = "(" + " ∨ ".join(clause) + ")"
+            result.append(vars)
+        return " ∧ ".join(result)
 
     def parse(self, filepath):
         with open(filepath) as file:
@@ -38,15 +47,12 @@ class Puzzle:
                 elif line.startswith('p'):
                     # save problem info
                     _, _, self.num_vars, self.num_clauses = line.split()
-                    print(
-                        f"DEBUG | Vars: {self.num_vars}, Clauses: {self.num_clauses}")
                 elif line.endswith('0'):
                     # process clause
                     raw_input += line[:-2] + " "  # Remove the zero
                 else:
                     # Anything else is useless
                     continue
-        print("DEBUG | " + raw_input)
 
         # Convert input to a list of integers
         array_form = [int(el) for el in str.split(raw_input)]
@@ -82,9 +88,11 @@ class Puzzle:
         return reduced_form
 
     def solve(self):
+        possible_solutions = 2 ** self.num_vars
         # compute vector sequence
         # find the solving variable assignment by brute force
-        for raw_guess in range(2 ** self.num_vars):
+        for raw_guess in range(possible_solutions):
+            print(f"Guess {raw_guess} / {possible_solutions}", end='\r')
             # Convert ordinal value of guess to its binary representation
             format_str = r'{:0' + str(self.num_vars) + r'b}'
             guess = [int(format_str.format(raw_guess)[j]) *
@@ -94,6 +102,11 @@ class Puzzle:
             # Every clause has at least one variable that 'passes'
             # Meaning it makes the value of the clause 'True'
             if all([not len(self.satisfied_vars(clause, guess)) == 0 for clause in self.three_sat]):
+                truth_assignment = ["T" if val == 1 else "F" for val in guess]
+                print("\n3SAT Solution found!")
+                for i in range(len(truth_assignment)):
+                    print(
+                        f"x{i + 1} = {truth_assignment[i]}", end=", " if i != len(truth_assignment) - 1 else "", flush=True)
                 return guess
 
         # If we made it here, none of the guesses were valid solutions to the problem
