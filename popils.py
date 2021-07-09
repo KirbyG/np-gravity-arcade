@@ -1,5 +1,5 @@
-from game import Game, Player, Block, Grid
-from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS, Vector
+from game import Game, Player, Block
+from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS, Vector, Grid
 
 
 # popils-specific gadgets
@@ -90,18 +90,18 @@ class Popils(Game):
 
     # compute the popils-specific solving move sequence for the given 3SAT instance
     def solve(self):
-        steps = []
+        self.solution = []
         # make variable assignments
         for truthiness in self.puzzle.solution:
             if truthiness == 1:
-                steps.append(UP)
-            steps.append(RIGHT)
-            steps.append(RIGHT)
+                self.solution.append(UP)
+            self.solution.append(RIGHT)
+            self.solution.append(RIGHT)
         # traverse level
         for clause in range(self.puzzle.num_clauses):
-            steps.append(UP)
-            steps.append(UP)
-            steps.append(UP)
+            self.solution.append(UP)
+            self.solution.append(UP)
+            self.solution.append(UP)
 
             satisfied = self.puzzle.satisfied_vars(
                 self.puzzle.three_sat[clause], self.puzzle.solution)
@@ -110,22 +110,20 @@ class Popils(Game):
 
             # move to nearest viable 'ladder'
             for i in range(lateral_blocks):
-                steps.append(LEFT)
+                self.solution.append(LEFT)
             # climb to next clause
-            steps.append(UP)
-            steps.append(UP)
+            self.solution.append(UP)
+            self.solution.append(UP)
             # go back to the main 'ladder'
             for i in range(lateral_blocks):
-                steps.append(RIGHT)
+                self.solution.append(RIGHT)
             # get in position to traverse the next clause
-            steps.append(UP)
+            self.solution.append(UP)
 
         # climb to princess!
-        steps.append(UP)
-        steps.append(UP)
-        steps.append(UP)
-
-        return steps
+        self.solution.append(UP)
+        self.solution.append(UP)
+        self.solution.append(UP)
 
     # vector is one of the common vectors imported from common_constants
     def update(self, vector):

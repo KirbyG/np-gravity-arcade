@@ -40,7 +40,6 @@ filepath = args.filename if args.filename else DEFAULT_3SAT
 puzzle = Puzzle(filepath)
 game = Megalit(puzzle) if args.megalit else Popils(puzzle)
 artist = Artist(game)
-
 # game loop
 while not game.complete:
     # update gamestate
@@ -49,6 +48,8 @@ while not game.complete:
         game.solution_step += 1
         if game.solution_step == len(game.solution):
             game.complete = True
+        for event in pygame.event.get():
+            pass
     else:  # user input mode
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
@@ -66,4 +67,4 @@ while not game.complete:
                     game.update(ZERO)
     # iterate game display with framerate capped at 15 FPS
     artist.draw()
-    artist.clock.tick(15)
+    artist.clock.tick(60)

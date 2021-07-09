@@ -1,6 +1,6 @@
 import pygame
 import os
-from common_constants import Vector, COLORS
+from common_constants import LEFT, RIGHT, UP, DOWN, Vector, COLORS
 
 
 # in charge of drawing Game objects
@@ -61,8 +61,18 @@ class Artist:
         corner_x = (x - offset.x) * self.BLOCK_DIM + 1
         corner_y = (self.WINDOW_BLOCKS.y - 1 - (y - offset.y)) * \
             self.BLOCK_DIM + 1
-        width = height = self.BLOCK_DIM - 1
+        width = height = self.BLOCK_DIM
         return [corner_x, corner_y, width, height]
+
+    def shrink(self, rect, short_sides):
+        reduction = 1
+        
+        if short_sides:
+            rect[0] += (reduction if short_sides.count(LEFT) else 0)
+            rect[1] += (reduction if short_sides.count(UP) else 0)
+            rect[2] -= reduction * (short_sides.count(LEFT) + short_sides.count(RIGHT))
+            rect[3] -= reduction * (short_sides.count(DOWN) + short_sides.count(UP))
+        return rect
 
     def draw(self):
         # compute the offset vector
@@ -73,14 +83,16 @@ class Artist:
         offset = Vector(x_offset, y_offset)
 
         # set the background to black
-        pygame.draw.rect(self.screen, COLORS['background'], [
+        pygame.draw.rect(self.screen, (255,255,255), [
                          0, 0, self.WINDOW_DIM.x, self.WINDOW_DIM.y])
 
         # draw the subgrid
         for x in range(offset.x, offset.x + self.WINDOW_BLOCKS.x):
             for y in range(offset.y, offset.y + self.WINDOW_BLOCKS.y):
+                #pygame.draw.rect(
+                 #   self.screen, (255,255,255), self.grid_to_px(x, y, offset))
                 pygame.draw.rect(
-                    self.screen, self.game.grid[x, y].color, self.grid_to_px(x, y, offset))
+                    self.screen, self.game.grid[x, y].color, self.shrink(self.grid_to_px(x, y, offset), self.game.grid[x, y].short_sides))
 
         # draw player
         pygame.draw.rect(self.screen, self.game.player.color, self.grid_to_px(

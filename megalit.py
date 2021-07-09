@@ -12,15 +12,16 @@ from math import floor, sqrt
 class Megalit(Game):
     def __init__(self, puzzle):
         super().__init__(puzzle)
+        self.hover = 0
+        self.historesis = LEFT
 
     # REDUCE - this is the heart of the NP-completeness proof
 
-    def build_platform(self, bottom_center, width, height):
-        bottom_left = bottom_center + (width - 1) / 2 * LEFT
+    def build_platform(self, bottom_left, width, height):
         self.slabs.append(Slab(self.grid, bottom_left, width * RIGHT))
         if height > 1:
             for x in range(width):
-                self.slabs.append(Slab(self.grid, bottom_left + x * RIGHT, (height - 1) * UP))
+                self.slabs.append(Slab(self.grid, bottom_left + x * RIGHT + UP, (height - 1) * UP))
 
     def build_table(self, bottom_center, width=3, height=3, splay=1):
         self.slabs.append(Slab(self.grid, bottom_center + (splay + 1) / 2 * LEFT, (height - 1) * UP))
@@ -28,19 +29,24 @@ class Megalit(Game):
         self.slabs.append(Slab(self.grid, bottom_center + (height - 1) * UP + (width - 1) / 2 * LEFT, width * RIGHT))
 
     def build_gadget(self, bottom_center, floor_height):
-        self.build_platform(bottom_center, 9, floor_height)
+        self.build_platform(bottom_center + 4 * LEFT, 9, floor_height)
         self.build_table(bottom_center + floor_height * UP, height=4)
         for y in range(13 - 4 - floor_height):
-            self.build_platform(bottom_center + (9 + y) * UP, 9, 0)
+            self.build_platform(bottom_center + (floor_height + 4 + y) * UP + 4 * LEFT, 9, 0)
 
     def magic(self, x):
-        return round(((x + 2) * (x + 2) - (x + 2)) / 2) + 4
+        if x == 0:
+            return 4
+        if x == -1:
+            return 5
+        if x == 1:
+            return 7
 
     def build_var_tower(self, var):
         # var setter area
-        x = 6 + 30 * var
+        x = 6 + 32 * var
         self.build_table(Vector(x, 1), width=5)
-        self.slabs.append(Slab(self.grid, Vector(x, 4), UP))
+        self.slabs.append(Slab(self.grid, Vector(x, 4), RIGHT))
         self.slabs.append(Slab(self.grid, Vector(x, 5), 3 * UP))
 
         # top of level filler
@@ -53,14 +59,15 @@ class Megalit(Game):
 
     def build_climbing_story(self, bottom_center, crunch=False):
         self.build_table(bottom_center, width=17, splay=5)
-        for y in range(3 - crunch):
-            self.build_platform(bottom_center + (y + 3) * UP, 19, 1)
+        self.build_platform(bottom_center + 3 * UP + 8 * LEFT, 17, 1)
+        for y in range(2 - crunch):
+            self.build_platform(bottom_center + (y + 4) * UP + 9 * LEFT, 19, 1)
         y = 6 - crunch
         self.slabs.append(Slab(self.grid, bottom_center + y * UP, 5 * UP))
         self.build_table(bottom_center + y * UP + 5 * LEFT)
         self.build_table(bottom_center + y * UP + 5 * RIGHT)
-        self.build_platform(bottom_center + (y + 3) * UP + 6 * LEFT, 9, 4)
-        self.build_platform(bottom_center + (y + 3) * UP + 6 * RIGHT, 9, 4)
+        self.build_platform(bottom_center + (y + 3) * UP + 11 * LEFT, 10, 4)
+        self.build_platform(bottom_center + (y + 3) * UP + 2 * RIGHT, 10, 4)
 
     def build_climbing_tower(self, bottom_center):
         # var setter area
@@ -68,14 +75,14 @@ class Megalit(Game):
 
         # actual tower
         for story in range(self.puzzle.num_clauses):
-            self.build_climbing_story(bottom_center + 13 * story * UP)
+            self.build_climbing_story(bottom_center + (13 * story + 12) * UP)
 
     # refer to <paper-filename>.pdf for details
     def reduce(self):
         # for now, just build a static level to test game mechanics
 
         # initialize to air blocks
-        self.grid = Grid(3 + (self.puzzle.num_vars - 1) * 21 + self.puzzle.num_vars * 9, 2 + 7 + 13 * self.puzzle.num_clauses + 5, lambda: Block('air'))
+        self.grid = Grid(3 + (self.puzzle.num_vars - 1) * 23 + self.puzzle.num_vars * 9, 2 + 7 + 13 * self.puzzle.num_clauses + 5, lambda: Block('air'))
 
         # bottom and top
         for x in range(self.grid.dim.x):
@@ -94,7 +101,7 @@ class Megalit(Game):
 
         # climbing towers
         for var in range(self.puzzle.num_vars - 1):
-            self.build_climbing_tower(Vector(21 + 30 * var, 1))
+            self.build_climbing_tower(Vector(22 + 32 * var, 1))
 
         # var towers
         for var in range(self.puzzle.num_vars):
@@ -127,7 +134,7 @@ class Megalit(Game):
         leg_gap = (table_width - 2 - splay) / 2
         self.travel(leg_gap * dir)
         self.move(-(leg_gap + 2) * dir)
-        self.super_knight(-1 * dir)
+        self.super_knight(dir)
         self.move((leg_gap + 2) * dir)
 
     def outswitch(self, dir, table_width=3, splay=1):
@@ -135,7 +142,7 @@ class Megalit(Game):
         self.move((leg_gap + 2) * dir)
         self.super_knight(dir)
         self.move(-(leg_gap + 2) * dir)
-        self.travel(-leg_gap * dir)
+        self.travel(leg_gap * dir)
 
     def use_tower(self, dir):
         self.super_knight(dir)
@@ -146,11 +153,18 @@ class Megalit(Game):
         self.climb_stairs(-1 * dir)
         self.super_knight(-1 * dir)
 
-    def varcross(self, dir):
-        self.super_knight(dir)
+    def varcross(self, dir, setting):
+        if setting == 1:
+            self.super_knight(dir)
+        else:
+            self.travel(2 * dir)
         self.travel(dir)
         self.crawl_under_table(dir)
-        self.travel(3 * dir)
+        self.travel(dir)
+        if setting == 1:
+            self.travel(2 * dir)
+        else:
+            self.super_knight(dir)
 
     # composite operation
     def crawl_under_table(self, dir, table_width=3, splay=1):
@@ -181,10 +195,10 @@ class Megalit(Game):
 
     # the solving move sequence for Megalit is significantly longer than for Popils
     def solve(self):
-        self.solution =  []
+        self.solution = []
 
         # set variables
-        for setting in self.puzzle.solution:
+        for var, setting in enumerate(self.puzzle.solution):
             # approach the table
             self.travel(2  * RIGHT)
 
@@ -195,17 +209,18 @@ class Megalit(Game):
                 self.move(LEFT)
                 self.travel(LEFT)
             
-            # crawl under the table
-            self.crawl_under_table(RIGHT, table_width=5)
-            
-            # approach the climbing tower
-            self.travel(3 * RIGHT)
+            if var != self.puzzle.num_vars - 1:
+                # crawl under the table
+                self.crawl_under_table(RIGHT, table_width=5)
+                
+                # approach the climbing tower
+                self.travel(4 * RIGHT)
 
-            # crawl under the climbing tower
-            self.crawl_under_table(RIGHT, table_width=19, splay=2)
+                # crawl under the climbing tower
+                self.crawl_under_table(RIGHT, table_width=17, splay=5)
 
-            # get in position for the next iteration
-            self.travel(RIGHT)
+                # get in position for the next iteration
+                self.travel(2 * RIGHT)
 
         # climb onto the first level of the tower
 
@@ -221,44 +236,41 @@ class Megalit(Game):
         # establish position tracking variables
 
         # which tower are we on
-        tower = self.puzzle.num_clauses - 2
+        tower = self.puzzle.num_vars - 1.5
 
         # which side of the tower are we climbing in from
-        side = RIGHT
+        travel_dir = RIGHT
 
         # solve each clause
         for _, clause in enumerate(self.puzzle.expanded_form):
             # get to the main floor
 
             # crawl under the support table
-            self.travel(-2 * side)
-            self.crawl_under_table(LEFT)
-
-            # move the table leg into position for the jump
-            self.move(-2 * side)
-            self.super_knight(side)
-            self.move(-1 * side)
+            self.travel(-2 * travel_dir)
+            self.inswitch(-1 * travel_dir)
+            self.move(-3 * travel_dir)
 
             # climb onto the 1 x 5
-            self.climb_stairs(-2 * side)
+            self.climb_stairs(-2 * travel_dir)
 
             # find the closest tower that we can use to escape
-            target_tower = min([abs(var - 1 - tower) for var in self.puzzle.satisfied_vars(self.puzzle.three_sat[_], self.puzzle.solution)])
+            target_tower = abs(self.puzzle.satisfied_vars(self.puzzle.three_sat[_], self.puzzle.solution)[0]) - 1
 
             # determine the direction of travel
             travel_dir = sign(target_tower - tower) * RIGHT
 
             self.super_knight(travel_dir)
             self.outcross(travel_dir)
-            side = travel_dir
+            tower += 0.5 * travel_dir.x
 
             # now we loop until we are in position
-            while tower + ((side.x + 1) / 2) != target_tower:
-                self.varcross(travel_dir)
+            while round(tower) != target_tower:
+                print(round(tower), target_tower)
+                self.varcross(travel_dir, clause[round(tower)])
                 self.towercross(travel_dir)
                 tower += travel_dir.x
-
             self.use_tower(travel_dir)
+            tower -= 0.5 * travel_dir.x
 
         #self.use_mineshaft(side)
 
@@ -297,6 +309,7 @@ class Megalit(Game):
             while self.grid[self.player.pos + UP].type == 'air' and jump_height < max_jump_height:
                 self.player.pos += UP
                 jump_height += 1
+            self.hover = 2
 
     # user has pressed the space bar to grip or release a slab
     def change_grip(self):
@@ -304,22 +317,28 @@ class Megalit(Game):
             self.grid[self.player.pos + self.player.gripping].type = 'tip'
             self.player.gripping = ZERO
         else:
-            if self.grid[self.player.pos + LEFT].type == 'tip':
-                self.player.gripping = LEFT
+            if self.grid[self.player.pos + self.historesis].type == 'tip':
+                self.player.gripping = self.historesis
                 self.grid[self.player.pos +
                           self.player.gripping].type = 'gripped'
-            elif self.grid[self.player.pos + RIGHT].type == 'tip':
-                self.player.gripping = RIGHT
+            elif self.grid[self.player.pos + -1 * self.historesis].type == 'tip':
+                self.player.gripping = -1 * self.historesis
                 self.grid[self.player.pos +
                           self.player.gripping].type = 'gripped'
 
     # move left or right unless blocked by a slab or level edge
     def walk(self, force):
+        self.historesis = force
         if self.grid[self.player.pos + force].type == 'air':
             self.player.pos += force
-            self.player_fall()
+            self.hover -= 1
+            if self.hover <= 0:
+                self.player_fall()
+                self.hover = 0
+        
 
     def update(self, force):
+        force = Vector(round(force.x), round(force.y))
         if not force:  # we are changing grip
             self.change_grip()
         elif self.player.gripping:  # we are trying to move a slab
@@ -355,7 +374,6 @@ class Megalit(Game):
             if force.x:
                 self.walk(force)
 
-
 # keep track of Megalit slabs and support their motion and collapse mechanics
 class Slab:
     # create a slab with the specified position and add it to the grid
@@ -367,12 +385,17 @@ class Slab:
         max_offset = int(extent.magnitude) - 1
         for offset in range(max_offset + 1):
             position = origin + (offset * step)
-            grid[position] = Block('tip' if offset in (
-                0, max_offset) else 'slab', self)
+            grid[position] = Block('slab', self, short_sides=[Vector(step.y, step.x), -1 * Vector(step.y, step.x)])
+            if offset == 0:
+                grid[position].type = 'tip'
+                grid[position].short_sides.append(-1 * step)
+            if offset == max_offset:
+                grid[position].type = 'tip'
+                grid[position].short_sides.append(step)
             self.blocks.append(grid[position])
             self.positions.append(position)
         end = origin + ((extent.magnitude - 1) * step)
-        grid[end] = Block('tip', self)
+        #grid[end] = Block('tip', self, short_sides=[Vector(step.y, step.x), -1 * Vector(step.y, step.x)])
 
     def dirmost(self, dir):
         return abs(max([position @ dir for position in self.positions]))
@@ -395,20 +418,22 @@ class Slab:
 
     # recursive
     def fall(self):
-        upper_neighbors = [self.world[position + UP].slab for position in self.positions if position.y ==
-                           self.dirmost(UP) and self.world[position + UP].slab]
+        upper_neighbors = set([self.world[position + UP].slab for position in self.positions if position.y ==
+                           self.dirmost(UP) and self.world[position + UP].slab])
 
         # drop this slab
         if not self.supported():
             self.move(DOWN)
+            for neighbor in upper_neighbors:
+                neighbor.fall()
 
         if not self.supported():
             for x in range(self.world.dim.x):
                 for y in range(self.world.dim.y):
                     self.world[x, y].type = 'slab'
             return
-
-        [neighbor.fall() for neighbor in upper_neighbors]
+        
+        
 
     # the player has tried to move this slab
     def slide(self, force):
