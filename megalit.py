@@ -2,7 +2,7 @@
 
 from game import Game, Block, Player
 from common_constants import LEFT, RIGHT, UP, DOWN, ZERO, Vector, Grid, sign
-from math import sqrt
+from math import floor, sqrt
 
 # Megalit was developed by the ASCII Corporation for the Gameboy
 
@@ -18,34 +18,51 @@ class Megalit(Game):
     # REDUCE - this is the heart of the NP-completeness proof
 
     def build_platform(self, bottom_center, width, height):
-        pass
+        bottom_left = bottom_center + (width - 1) / 2 * LEFT
+        self.slabs.append(Slab(self.grid, bottom_left, width * RIGHT))
+        if height > 1:
+            for x in range(width):
+                self.slabs.append(Slab(self.grid, bottom_left + x * RIGHT, (height - 1) * UP))
 
     def build_table(self, bottom_center, width=3, height=3, splay=1):
-        pass
+        self.slabs.append(Slab(self.grid, bottom_center + (splay + 1) / 2 * LEFT, (height - 1) * UP))
+        self.slabs.append(Slab(self.grid, bottom_center + (splay + 1) / 2 * RIGHT, (height - 1) * UP))
+        self.slabs.append(Slab(self.grid, bottom_center + (height - 1) * UP + (width - 1) / 2 * LEFT, width * RIGHT))
 
     def build_gadget(self, bottom_center, floor_height):
-        pass
+        self.build_platform(bottom_center, 9, floor_height)
+        self.build_table(bottom_center + floor_height * UP, height=4)
+        for y in range(13 - 4 - floor_height):
+            self.build_platform(bottom_center + (9 + y) * UP, 9, 0)
+
+    def magic(self, x):
+        return round(((x + 2) * (x + 2) - (x + 2)) / 2) + 4
 
     def build_var_tower(self, var):
         # var setter area
         x = 6 + 30 * var
         self.build_table(Vector(x, 1), width=5)
-        Slab(self.grid, Vector(x, 4), Vector(0, 1))
-        Slab(self.grid, Vector(x, 5), Vector(0, 3))
+        self.slabs.append(Slab(self.grid, Vector(x, 4), UP))
+        self.slabs.append(Slab(self.grid, Vector(x, 5), 3 * UP))
 
         # top of level filler
         for y in range(self.grid.dim.y - 6, self.grid.dim.y - 1):
-            Slab(self.grid, Vector(x - 4, y), Vector(9, 0))
+            self.slabs.append(Slab(self.grid, Vector(x - 4, y), 9 * RIGHT))
 
         # actual tower
         for clause in range(self.puzzle.num_clauses):
-            #3,4,6<-0
-            #1,1->1,2
-            (x + 2) ** 2
-            self.build_gadget(Vector(x, 8 + 13 * clause), )
+            self.build_gadget(Vector(x, 8 + 13 * clause), self.magic(self.puzzle.expanded_form[clause][var]))
 
     def build_climbing_story(self, bottom_center, crunch=False):
-        pass
+        self.build_table(bottom_center, width=17, splay=5)
+        for y in range(3 - crunch):
+            self.build_platform(bottom_center + (y + 3) * UP, 19, 1)
+        y = 6 - crunch
+        self.slabs.append(Slab(self.grid, bottom_center + y * UP, 5 * UP))
+        self.build_table(bottom_center + y * UP + 5 * LEFT)
+        self.build_table(bottom_center + y * UP + 5 * RIGHT)
+        self.build_platform(bottom_center + (y + 3) * UP + 6 * LEFT, 9, 4)
+        self.build_platform(bottom_center + (y + 3) * UP + 6 * RIGHT, 9, 4)
 
     def build_climbing_tower(self, bottom_center):
         # var setter area
@@ -92,7 +109,7 @@ class Megalit(Game):
 
     # move left or right along flat ground
     def travel(self, vector):
-        self.solution.extend([vector.normalize()] * vector.magnitude())
+        self.solution.extend([vector.normalize()] * round(vector.magnitude))
 
     # just like travel, but we are taking a slab with us
     def move(self, vector):
@@ -106,7 +123,7 @@ class Megalit(Game):
         self.travel(2 * dir)
 
     def climb_stairs(self, vector):
-        self.solution.extend([UP, vector.normalize(), DOWN] * vector.magnitude())
+        self.solution.extend([UP, vector.normalize(), DOWN] * round(vector.magnitude))
 
     def inswitch(self, dir, table_width=3, splay=1):
         leg_gap = (table_width - 2 - splay) / 2
@@ -212,7 +229,7 @@ class Megalit(Game):
         side = RIGHT
 
         # solve each clause
-        for clause in self.puzzle.expanded_form:
+        for _, clause in enumerate(self.puzzle.expanded_form):
             # get to the main floor
 
             # crawl under the support table
@@ -228,10 +245,10 @@ class Megalit(Game):
             self.climb_stairs(-2 * side)
 
             # find the closest tower that we can use to escape
-            target_tower = min([abs(var - 1 - tower) for var in self.puzzle.satisfied_vars(clause, self.puzzle.solution)])
+            target_tower = min([abs(var - 1 - tower) for var in self.puzzle.satisfied_vars(self.puzzle.three_sat[_], self.puzzle.solution)])
 
             # determine the direction of travel
-            travel_dir = sign(target_tower - tower)
+            travel_dir = sign(target_tower - tower) * RIGHT
 
             self.super_knight(travel_dir)
             self.outcross(travel_dir)
@@ -241,6 +258,7 @@ class Megalit(Game):
             while tower + ((side.x + 1) / 2) != target_tower:
                 self.varcross(travel_dir)
                 self.towercross(travel_dir)
+                tower += travel_dir.x
 
             self.use_tower(travel_dir)
 
@@ -249,7 +267,7 @@ class Megalit(Game):
         #run across to the bulldozer
 
         #bulldozer operation loop
-        while True:
+        while False:
             #loop up the bulldozer arms pushing them in as far as possible until we can remove a slab from the haunted house
             #pull the targeted slab into position above the trash compactor
             #loop back down the bulldozer arms

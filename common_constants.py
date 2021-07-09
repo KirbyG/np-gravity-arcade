@@ -16,8 +16,8 @@ COLORS = {
         }
 
 # purely mathematical helper function mapping -R -> -1, R -> 1
-def sign(self, num):
-    return int(abs(num) / num)
+def sign(num):
+    return 0 if not num else int(abs(num) / num)
 
 class Vector:
     def __init__(self, x, y):
@@ -31,7 +31,7 @@ class Vector:
 
     # pure function
     def normalize(self):
-        return Vector(self.x / self.magnitude, self.y / self.magnitude)
+        return Vector(self.x / self.magnitude, self.y / self.magnitude) if self.magnitude else ZERO
 
     def __rmul__(self, other):
         return Vector(self.x * other, self.y * other)
