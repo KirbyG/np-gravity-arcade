@@ -1,4 +1,4 @@
-from common_constants import VARS_PER_CLAUSE
+from common_constants import VARS_PER_CLAUSE, sign
 
 # Default 3SAT instance. Will be ignored if user provides alternative
 DEFAULT_3SAT = '1 2 3 -2 -3 4 1 -3 6 -1 4 5 2 -4 -6'
@@ -86,10 +86,6 @@ class Puzzle:
         # If we made it here, none of the guesses were valid solutions to the problem
         return []
 
-    # purely mathematical helper function mapping -R -> -1, R -> 1
-    def _sign(self, num):
-        return int(abs(num) / num)
-
     # given a clause and variable assignment, return the satisfied variables in that clause
     def satisfied_vars(self, clause, assignment):
-        return [var for var in clause if assignment[abs(var) - 1] * self._sign(var) == 1]
+        return [var for var in clause if assignment[abs(var) - 1] * sign(var) == 1]

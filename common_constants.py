@@ -15,6 +15,10 @@ COLORS = {
           'gripped': (50, 50, 50)
         }
 
+# purely mathematical helper function mapping -R -> -1, R -> 1
+def sign(self, num):
+    return int(abs(num) / num)
+
 class Vector:
     def __init__(self, x, y):
         self.x = x

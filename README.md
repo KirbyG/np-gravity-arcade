@@ -49,3 +49,7 @@ TODO (both)
             conclusion
             description of github project
             possibilities for extension
+
+polish the spreadsheet
+megalit demo fully functional
+skimming
