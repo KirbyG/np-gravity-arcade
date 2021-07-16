@@ -1,4 +1,5 @@
 c This instance was created by Jacob & Kirby
+c Following line denotes CNF format, 6 vars, 5 clauses
 p cnf 6 5 
 1 2 3 0
 -2 -3 4 0

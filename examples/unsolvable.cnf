@@ -1,6 +1,6 @@
 c This instance was created by Jacob & Kirby
 c Simplest possible 3SAT that cannot be solved
-p cnf 8 3 
+p cnf 3 8
 1 2 3 0
 1 2 -3 0
 1 -2 3 0
