@@ -109,7 +109,7 @@ class Puzzle:
             # Meaning it makes the value of the clause 'True'
             if all([len(self.satisfied_vars(clause, guess)) != 0 for clause in self.three_sat]):
                 truth_assignment = ["T" if val == 1 else "F" for val in guess]
-                print("\n...3SAT solution found!")
+                print("\n3SAT solution found!")
                 for i in range(len(truth_assignment)):
                     print(
                         f"x{i + 1} = {truth_assignment[i]}", end=", " if i != len(truth_assignment) - 1 else "\n\n", flush=True)

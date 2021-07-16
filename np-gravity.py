@@ -4,6 +4,7 @@
 
 import argparse
 import pygame
+from pygame.constants import K_ESCAPE
 # from pathlib import Path
 from puzzle import Puzzle
 from popils import Popils
@@ -43,27 +44,41 @@ artist = Artist(game)
 
 # game loop
 while not game.complete:
-    # update gamestate
-    if args.solver and game.solution:  # autosolver mode
+    # Capture player's attempt to quit manually
+    try:
+        event_list = pygame.event.get()
+    except KeyboardInterrupt:
+        # Exit upon SIGINT (Ctrl + C) in terminal
+        game.complete = True
+
+    # Normal user input mode
+    for event in event_list:
+        if event.type == pygame.QUIT:
+            # Exit upon clicking X in corner of window
+            game.complete = True
+        elif event.type == pygame.KEYUP:
+            if event.key == K_ESCAPE:
+                # Exit upon hitting Esc
+                game.complete = True
+            # handle basic directional inputs
+            elif event.key == pygame.K_LEFT:
+                game.update(LEFT)
+            elif event.key == pygame.K_RIGHT:
+                game.update(RIGHT)
+            elif event.key == pygame.K_UP:
+                game.update(UP)
+            elif event.key == pygame.K_DOWN:
+                game.update(DOWN)
+            elif event.key == pygame.K_SPACE:
+                game.update(ZERO)
+
+    # autosolver mode
+    if args.solver and game.solution:
         game.update(game.solution[game.solution_step])
         game.solution_step += 1
         if game.solution_step == len(game.solution):
             game.complete = True
-    else:  # user input mode
-        for event in pygame.event.get():
-            if event.type == pygame.QUIT:
-                game.complete = True
-            elif event.type == pygame.KEYUP:  # pass basic directional inputs to game
-                if event.key == pygame.K_LEFT:
-                    game.update(LEFT)
-                elif event.key == pygame.K_RIGHT:
-                    game.update(RIGHT)
-                elif event.key == pygame.K_UP:
-                    game.update(UP)
-                elif event.key == pygame.K_DOWN:
-                    game.update(DOWN)
-                elif event.key == pygame.K_SPACE:
-                    game.update(ZERO)
+
     # iterate game display with framerate capped at 15 FPS
     artist.draw()
     artist.clock.tick(15)
