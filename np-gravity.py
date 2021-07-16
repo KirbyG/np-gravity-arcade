@@ -44,7 +44,7 @@ artist = Artist(game)
 # game loop
 while not game.complete:
     # update gamestate
-    if args.solver:  # autosolver mode
+    if args.solver and game.solution:  # autosolver mode
         game.update(game.solution[game.solution_step])
         game.solution_step += 1
         if game.solution_step == len(game.solution):

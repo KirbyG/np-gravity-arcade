@@ -91,41 +91,45 @@ class Popils(Game):
     # compute the popils-specific solving move sequence for the given 3SAT instance
     def solve(self):
         steps = []
-        # make variable assignments
-        for truthiness in self.puzzle.solution:
-            if truthiness == 1:
-                steps.append(UP)
-            steps.append(RIGHT)
-            steps.append(RIGHT)
-        # traverse level
-        for clause in range(self.puzzle.num_clauses):
-            steps.append(UP)
-            steps.append(UP)
-            steps.append(UP)
-
-            satisfied = self.puzzle.satisfied_vars(
-                self.puzzle.three_sat[clause], self.puzzle.solution)
-            closest = max([abs(var) for var in satisfied])
-            lateral_blocks = 2 * (self.puzzle.num_vars + 1 - closest)
-
-            # move to nearest viable 'ladder'
-            for i in range(lateral_blocks):
-                steps.append(LEFT)
-            # climb to next clause
-            steps.append(UP)
-            steps.append(UP)
-            # go back to the main 'ladder'
-            for i in range(lateral_blocks):
+        if not self.puzzle.solution:
+            print("WARNING | Not running Popils solver because 3SAT could not be solved.")
+            return steps
+        else:
+            # make variable assignments
+            for truthiness in self.puzzle.solution:
+                if truthiness == 1:
+                    steps.append(UP)
                 steps.append(RIGHT)
-            # get in position to traverse the next clause
+                steps.append(RIGHT)
+            # traverse level
+            for clause in range(self.puzzle.num_clauses):
+                steps.append(UP)
+                steps.append(UP)
+                steps.append(UP)
+
+                satisfied = self.puzzle.satisfied_vars(
+                    self.puzzle.three_sat[clause], self.puzzle.solution)
+                closest = max([abs(var) for var in satisfied])
+                lateral_blocks = 2 * (self.puzzle.num_vars + 1 - closest)
+
+                # move to nearest viable 'ladder'
+                for i in range(lateral_blocks):
+                    steps.append(LEFT)
+                # climb to next clause
+                steps.append(UP)
+                steps.append(UP)
+                # go back to the main 'ladder'
+                for i in range(lateral_blocks):
+                    steps.append(RIGHT)
+                # get in position to traverse the next clause
+                steps.append(UP)
+
+            # climb to princess!
+            steps.append(UP)
+            steps.append(UP)
             steps.append(UP)
 
-        # climb to princess!
-        steps.append(UP)
-        steps.append(UP)
-        steps.append(UP)
-
-        return steps
+            return steps
 
     # vector is one of the common vectors imported from common_constants
     def update(self, vector):
