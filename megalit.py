@@ -1,7 +1,7 @@
 # this file contains the Megalit class and its Slab helper class
 
-from game import Game, Block, Player
-from common_constants import LEFT, RIGHT, UP, DOWN, ZERO, Vector, Grid, sign
+from game import Game, Block, Player, Grid
+from common_constants import LEFT, RIGHT, UP, DOWN, ZERO, Vector, sign
 from math import floor, sqrt
 
 # Megalit was developed by the ASCII Corporation for the Gameboy
@@ -20,12 +20,16 @@ class Megalit(Game):
         self.slabs.append(Slab(self.grid, bottom_left, width * RIGHT))
         if height > 1:
             for x in range(width):
-                self.slabs.append(Slab(self.grid, bottom_left + x * RIGHT, (height - 1) * UP))
+                self.slabs.append(
+                    Slab(self.grid, bottom_left + x * RIGHT, (height - 1) * UP))
 
     def build_table(self, bottom_center, width=3, height=3, splay=1):
-        self.slabs.append(Slab(self.grid, bottom_center + (splay + 1) / 2 * LEFT, (height - 1) * UP))
-        self.slabs.append(Slab(self.grid, bottom_center + (splay + 1) / 2 * RIGHT, (height - 1) * UP))
-        self.slabs.append(Slab(self.grid, bottom_center + (height - 1) * UP + (width - 1) / 2 * LEFT, width * RIGHT))
+        self.slabs.append(Slab(self.grid, bottom_center +
+                          (splay + 1) / 2 * LEFT, (height - 1) * UP))
+        self.slabs.append(Slab(self.grid, bottom_center +
+                          (splay + 1) / 2 * RIGHT, (height - 1) * UP))
+        self.slabs.append(Slab(self.grid, bottom_center + (height - 1)
+                          * UP + (width - 1) / 2 * LEFT, width * RIGHT))
 
     def build_gadget(self, bottom_center, floor_height):
         self.build_platform(bottom_center, 9, floor_height)
@@ -49,7 +53,8 @@ class Megalit(Game):
 
         # actual tower
         for clause in range(self.puzzle.num_clauses):
-            self.build_gadget(Vector(x, 8 + 13 * clause), self.magic(self.puzzle.expanded_form[clause][var]))
+            self.build_gadget(Vector(x, 8 + 13 * clause),
+                              self.magic(self.puzzle.expanded_form[clause][var]))
 
     def build_climbing_story(self, bottom_center, crunch=False):
         self.build_table(bottom_center, width=17, splay=5)
@@ -75,7 +80,8 @@ class Megalit(Game):
         # for now, just build a static level to test game mechanics
 
         # initialize to air blocks
-        self.grid = Grid(3 + (self.puzzle.num_vars - 1) * 21 + self.puzzle.num_vars * 9, 2 + 7 + 13 * self.puzzle.num_clauses + 5, lambda: Block('air'))
+        self.grid = Grid(3 + (self.puzzle.num_vars - 1) * 21 + self.puzzle.num_vars * 9,
+                         2 + 7 + 13 * self.puzzle.num_clauses + 5, lambda: Block('air'))
 
         # bottom and top
         for x in range(self.grid.dim.x):
@@ -99,7 +105,7 @@ class Megalit(Game):
         # var towers
         for var in range(self.puzzle.num_vars):
             self.build_var_tower(var)
-        
+
         # player start position
         self.player = Player(Vector(1, 1))
 
@@ -121,7 +127,8 @@ class Megalit(Game):
         self.travel(2 * dir)
 
     def climb_stairs(self, vector):
-        self.solution.extend([UP, vector.normalize(), DOWN] * round(vector.magnitude))
+        self.solution.extend([UP, vector.normalize(), DOWN]
+                             * round(vector.magnitude))
 
     def inswitch(self, dir, table_width=3, splay=1):
         leg_gap = (table_width - 2 - splay) / 2
@@ -142,7 +149,7 @@ class Megalit(Game):
         self.travel(dir)
         self.move(-2 * dir)
         self.super_knight(dir)
-        self.move(-2  * dir)
+        self.move(-2 * dir)
         self.climb_stairs(-1 * dir)
         self.super_knight(-1 * dir)
 
@@ -154,11 +161,11 @@ class Megalit(Game):
 
     # composite operation
     def crawl_under_table(self, dir, table_width=3, splay=1):
-        #inswitch
+        # inswitch
         self.inswitch(dir, table_width=table_width, splay=splay)
-        #cross
+        # cross
         self.travel(max(1, splay - 1) * dir)
-        #outswitch
+        # outswitch
         self.outswitch(dir, table_width=table_width, splay=splay)
 
     def incross(self, dir):
@@ -181,12 +188,12 @@ class Megalit(Game):
 
     # the solving move sequence for Megalit is significantly longer than for Popils
     def solve(self):
-        self.solution =  []
+        self.solution = []
 
         # set variables
         for setting in self.puzzle.solution:
             # approach the table
-            self.travel(2  * RIGHT)
+            self.travel(2 * RIGHT)
 
             # drop the tower if necessary
             if setting == 1:
@@ -194,10 +201,10 @@ class Megalit(Game):
                 self.travel(RIGHT)
                 self.move(LEFT)
                 self.travel(LEFT)
-            
+
             # crawl under the table
             self.crawl_under_table(RIGHT, table_width=5)
-            
+
             # approach the climbing tower
             self.travel(3 * RIGHT)
 
@@ -214,7 +221,7 @@ class Megalit(Game):
         self.move(4 * LEFT)
         self.super_knight(RIGHT)
         self.move(LEFT)
-        
+
         # jump on the trampoline
         self.climb_stairs(2 * LEFT)
 
@@ -243,7 +250,8 @@ class Megalit(Game):
             self.climb_stairs(-2 * side)
 
             # find the closest tower that we can use to escape
-            target_tower = min([abs(var - 1 - tower) for var in self.puzzle.satisfied_vars(self.puzzle.three_sat[_], self.puzzle.solution)])
+            target_tower = min([abs(var - 1 - tower) for var in self.puzzle.satisfied_vars(
+                self.puzzle.three_sat[_], self.puzzle.solution)])
 
             # determine the direction of travel
             travel_dir = sign(target_tower - tower) * RIGHT
@@ -260,27 +268,27 @@ class Megalit(Game):
 
             self.use_tower(travel_dir)
 
-        #self.use_mineshaft(side)
+        # self.use_mineshaft(side)
 
-        #run across to the bulldozer
+        # run across to the bulldozer
 
-        #bulldozer operation loop
+        # bulldozer operation loop
         while False:
-            #loop up the bulldozer arms pushing them in as far as possible until we can remove a slab from the haunted house
-            #pull the targeted slab into position above the trash compactor
-            #loop back down the bulldozer arms
-            #climb back over the bulldozer
-            #operate the trash compactor
-            #push the targeted slab to the end of the dump
-            #climb back over the trash compactor
-            #reset the trash compactor
-            #climb out of the garbage zone
-            #climb back over the bulldozer
-            #reset the bulldozer
-            #move to the base of the bulldozer
+            # loop up the bulldozer arms pushing them in as far as possible until we can remove a slab from the haunted house
+            # pull the targeted slab into position above the trash compactor
+            # loop back down the bulldozer arms
+            # climb back over the bulldozer
+            # operate the trash compactor
+            # push the targeted slab to the end of the dump
+            # climb back over the trash compactor
+            # reset the trash compactor
+            # climb out of the garbage zone
+            # climb back over the bulldozer
+            # reset the bulldozer
+            # move to the base of the bulldozer
             pass
 
-        #dismantle the bulldozer
+        # dismantle the bulldozer
 
     # UPDATE - support gameplay
 
