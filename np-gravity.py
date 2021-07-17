@@ -41,7 +41,6 @@ filepath = args.filename if args.filename else DEFAULT_3SAT
 puzzle = Puzzle(filepath)
 game = Megalit(puzzle) if args.megalit else Popils(puzzle)
 artist = Artist(game)
-
 # game loop
 while not game.complete:
     # Capture player's attempt to quit manually
