@@ -5,7 +5,6 @@
 import argparse
 import pygame
 from pygame.constants import K_ESCAPE
-# from pathlib import Path
 from puzzle import Puzzle
 from popils import Popils
 from megalit import Megalit
@@ -21,7 +20,7 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', dest='filename',
                         help="file containing an instance of 3SAT in DIMACS CNF format")
-    parser.add_argument('-s', dest='solver', action='store_true',
+    parser.add_argument('-s', '--solve', dest='solver', action='store_true',
                         help='run puzzle auto-solver')
     parser.add_argument('-m', '--megalit', action='store_true',
                         help='reduce 3SAT to Megalit instead of Popils')
