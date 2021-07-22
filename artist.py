@@ -66,12 +66,14 @@ class Artist:
 
     def shrink(self, rect, short_sides):
         reduction = 1
-        
+
         if short_sides:
             rect[0] += (reduction if short_sides.count(LEFT) else 0)
             rect[1] += (reduction if short_sides.count(UP) else 0)
-            rect[2] -= reduction * (short_sides.count(LEFT) + short_sides.count(RIGHT))
-            rect[3] -= reduction * (short_sides.count(DOWN) + short_sides.count(UP))
+            rect[2] -= reduction * \
+                (short_sides.count(LEFT) + short_sides.count(RIGHT))
+            rect[3] -= reduction * \
+                (short_sides.count(DOWN) + short_sides.count(UP))
         return rect
 
     def draw(self):
@@ -83,14 +85,12 @@ class Artist:
         offset = Vector(x_offset, y_offset)
 
         # set the background to black
-        pygame.draw.rect(self.screen, (255,255,255), [
+        pygame.draw.rect(self.screen, (255, 255, 255), [
                          0, 0, self.WINDOW_DIM.x, self.WINDOW_DIM.y])
 
         # draw the subgrid
         for x in range(offset.x, offset.x + self.WINDOW_BLOCKS.x):
             for y in range(offset.y, offset.y + self.WINDOW_BLOCKS.y):
-                #pygame.draw.rect(
-                 #   self.screen, (255,255,255), self.grid_to_px(x, y, offset))
                 pygame.draw.rect(
                     self.screen, self.game.grid[x, y].color, self.shrink(self.grid_to_px(x, y, offset), self.game.grid[x, y].short_sides))
 

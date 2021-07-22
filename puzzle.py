@@ -8,6 +8,7 @@ class Puzzle:
         # num_clauses & num_vars are saved during parse()
         self.num_vars = int(self.num_vars)
         self.num_clauses = int(self.num_clauses)
+        print(f"DEBUG | C: {self.num_clauses}, V: {self.num_vars}")
         print("Reducing from: " + str(self))
         self.expanded_form = self.expand()
         self.solution = self.solve()
@@ -72,7 +73,7 @@ class Puzzle:
     def convertToReducedForm(self, array_form, nested_form):
         # Relabel variables to smallest possible numbers
         var_set = {abs(var) for var in array_form}
-        self.num_vars = len(var_set)
+        self.num_vars = len(var_set)  # Update num_vars to minimal set
         for index in range(1, self.num_vars + 1):
             if not index in var_set:
                 to_relabel = min([elem for elem in var_set if elem <= index])
@@ -84,6 +85,11 @@ class Puzzle:
         # Remove malformed clauses with duplicate vars
         reduced_form = [clause for clause in nested_form if len(
             {abs(var) for var in clause}) == VARS_PER_CLAUSE]
+        if len(reduced_form) < int(self.num_clauses):
+            print(
+                "WARNING | One or more clauses were removed because they were malformed.")
+            # Prune clauses with duplicate vars
+            self.num_clauses = len(reduced_form)
 
         return reduced_form
 
@@ -92,7 +98,7 @@ class Puzzle:
         # compute vector sequence
         # find the solving variable assignment by brute force
         for raw_guess in range(possible_solutions):
-            print(f"Guess {raw_guess} / {possible_solutions}", end='\r')
+            print(f"Guess {raw_guess + 1} / {possible_solutions}", end='\r')
             # Convert ordinal value of guess to its binary representation
             format_str = r'{:0' + str(self.num_vars) + r'b}'
             guess = [int(format_str.format(raw_guess)[j]) *
@@ -101,15 +107,16 @@ class Puzzle:
             # Save current solution guess iff
             # Every clause has at least one variable that 'passes'
             # Meaning it makes the value of the clause 'True'
-            if all([not len(self.satisfied_vars(clause, guess)) == 0 for clause in self.three_sat]):
+            if all([len(self.satisfied_vars(clause, guess)) != 0 for clause in self.three_sat]):
                 truth_assignment = ["T" if val == 1 else "F" for val in guess]
-                print("\n3SAT Solution found!")
+                print("\n3SAT solution found!")
                 for i in range(len(truth_assignment)):
                     print(
                         f"x{i + 1} = {truth_assignment[i]}", end=", " if i != len(truth_assignment) - 1 else "\n\n", flush=True)
                 return guess
 
         # If we made it here, none of the guesses were valid solutions to the problem
+        print("WARNING | 3SAT instance is unsolvable!")
         return []
 
     # given a clause and variable assignment, return the satisfied variables in that clause

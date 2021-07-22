@@ -91,39 +91,48 @@ class Popils(Game):
     # compute the popils-specific solving move sequence for the given 3SAT instance
     def solve(self):
         self.solution = []
-        # make variable assignments
-        for truthiness in self.puzzle.solution:
-            if truthiness == 1:
-                self.solution.append(UP)
-            self.solution.append(RIGHT)
-            self.solution.append(RIGHT)
-        # traverse level
-        for clause in range(self.puzzle.num_clauses):
-            self.solution.append(UP)
-            self.solution.append(UP)
-            self.solution.append(UP)
-
-            satisfied = self.puzzle.satisfied_vars(
-                self.puzzle.three_sat[clause], self.puzzle.solution)
-            closest = max([abs(var) for var in satisfied])
-            lateral_blocks = 2 * (self.puzzle.num_vars + 1 - closest)
-
-            # move to nearest viable 'ladder'
-            for i in range(lateral_blocks):
-                self.solution.append(LEFT)
-            # climb to next clause
-            self.solution.append(UP)
-            self.solution.append(UP)
-            # go back to the main 'ladder'
-            for i in range(lateral_blocks):
+        if self.puzzle.solution:
+            # make variable assignments
+            for truthiness in self.puzzle.solution:
+                if truthiness == 1:
+                    self.solution.append(UP)
                 self.solution.append(RIGHT)
-            # get in position to traverse the next clause
-            self.solution.append(UP)
+                self.solution.append(RIGHT)
 
-        # climb to princess!
-        self.solution.append(UP)
-        self.solution.append(UP)
-        self.solution.append(UP)
+            # traverse level
+            for clause in range(self.puzzle.num_clauses):
+                # climb ladder to enter clause
+                self.solution.append(UP)
+                self.solution.append(UP)
+                self.solution.append(UP)
+
+                # find nearest viable ladder
+                satisfied = self.puzzle.satisfied_vars(
+                    self.puzzle.three_sat[clause], self.puzzle.solution)
+                closest = max([abs(var) for var in satisfied])
+                lateral_blocks = 2 * (self.puzzle.num_vars + 1 - closest)
+
+                # move to nearest viable ladder
+                for i in range(lateral_blocks):
+                    self.solution.append(LEFT)
+
+                # climb to next clause
+                self.solution.append(UP)
+                self.solution.append(UP)
+
+                # go back to the main ladder
+                for i in range(lateral_blocks):
+                    self.solution.append(RIGHT)
+
+                # get in position to traverse the next clause
+                self.solution.append(UP)
+
+            # climb to princess!
+            self.solution.append(UP)
+            self.solution.append(UP)
+            self.solution.append(UP)
+        else:
+            print("WARNING | Not running Popils solver because 3SAT could not be solved.")
 
     # vector is one of the common vectors imported from common_constants
     def update(self, vector):
