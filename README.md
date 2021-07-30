@@ -72,7 +72,6 @@ where `¬` is the logical negation symbol.
     * For in-progress drafts, see email from Aaron
 
 # (Non-exhaustive) TODO List
-* add more example instances
 * optimize input parsing logic
 * megalit
     * reduction
