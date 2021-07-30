@@ -1,3 +1,5 @@
+#!/usr/bin/env python3
+
 # this file reads user input, first from CLI, then in the game loop
 
 # SETUP
@@ -20,10 +22,12 @@ def parse_arguments():
     parser = argparse.ArgumentParser()
     parser.add_argument('-f', dest='filename',
                         help="file containing an instance of 3SAT in DIMACS CNF format")
-    parser.add_argument('-s', '--solve', dest='solver', action='store_true',
-                        help='run puzzle auto-solver')
     parser.add_argument('-m', '--megalit', action='store_true',
                         help='reduce 3SAT to Megalit instead of Popils')
+    parser.add_argument('-q', '--quick', action='store_true',
+                        help='Increase game speed. Useful for playing back long autosolves')
+    parser.add_argument('-s', '--solve', dest='solver', action='store_true',
+                        help='run puzzle auto-solver')
     return parser.parse_args()
 
 
@@ -40,6 +44,10 @@ filepath = args.filename if args.filename else DEFAULT_3SAT
 puzzle = Puzzle(filepath)
 game = Megalit(puzzle) if args.megalit else Popils(puzzle)
 artist = Artist(game)
+
+# set desired framerate
+fps = 60 if args.quick else 15
+
 # game loop
 while not game.complete:
     # Capture player's attempt to quit manually
@@ -77,6 +85,6 @@ while not game.complete:
         if game.solution_step == len(game.solution):
             game.complete = True
 
-    # iterate game display with framerate capped at 15 FPS
+    # iterate game display with capped framerate
     artist.draw()
-    artist.clock.tick(15)
+    artist.clock.tick(fps)

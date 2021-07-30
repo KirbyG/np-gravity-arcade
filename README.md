@@ -11,9 +11,14 @@ and *Megalit*.
 optional arguments:
   -h, --help     show this help message and exit
   -f FILENAME    file containing an instance of 3SAT in DIMACS CNF format
-  -s , --solve   run puzzle auto-solver
   -m, --megalit  reduce 3SAT to Megalit instead of Popils
+  -q, --quick    Increase game speed. Useful for playing back long autosolves
+  -s, --solve    run puzzle auto-solver
 ```
+
+For example, `./np-gravity -m -s` reduces "default.cnf" to *Megalit*
+and auto-solves the generated level. `./np-gravity -f examples/unsolvable.cnf`
+reduces "examples/unsolvable.cnf" to *Popils* and generates an interactive level.
 
 ## Notes
 The `archive` folder contains the results of our original foray into proving
@@ -60,6 +65,11 @@ where `¬` is the logical negation symbol.
 * [*Megalit* Wiki Entry](https://en.wikipedia.org/wiki/Megalit) 
 	/ [Megalit Gameplay](https://www.youtube.com/watch?v=2ccKBg8pZXk)
 
+## Papers for Reference
+* [Gaming is a hard job, but someone has to do it!](https://arxiv.org/abs/1201.4995)
+* [Classic Nintendo Games are (Computationally) Hard](https://arxiv.org/abs/1203.1895)
+* [Block Dude Puzzles are NP-Hard (and the Rugs Really Tie the Reductions Together)](https://www.researchgate.net/publication/352934749_Block_Dude_Puzzles_are_NP-Hard_and_the_Rugs_Really_Tie_the_Reductions_Together) 
+    * For in-progress drafts, see email from Aaron
 
 # (Non-exhaustive) TODO List
 * add more example instances
@@ -79,6 +89,7 @@ where `¬` is the logical negation symbol.
         might be better as a draw function returned from a wrapper function
         that first instantiates all the constants and pygame resources. keeping
         this in its own module still seems desirable
+* add some dynamic controls (FPS/gamespeed, maybe a file/level selector)
 * write the actual paper (we need to start by skimming a few other papers that
     do similar proofs. without seeing how others do it, the following would be
     my approach to the structure). clarity is probably the most important
@@ -109,3 +120,5 @@ where `¬` is the logical negation symbol.
 * polish the spreadsheet
 * megalit demo fully functional
 * skimming
+* port demo from PyGame (python3) to Pico-8 (Lua)
+* host game on Aaron's website
