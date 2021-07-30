@@ -41,7 +41,7 @@ args = parse_arguments()
 filepath = args.filename if args.filename else DEFAULT_3SAT
 
 # create game instance of the correct type
-puzzle = Puzzle(filepath)
+puzzle = Puzzle(filepath, args.solver)
 game = Megalit(puzzle) if args.megalit else Popils(puzzle)
 artist = Artist(game)
 

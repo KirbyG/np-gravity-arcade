@@ -132,7 +132,7 @@ class Popils(Game):
             self.solution.append(UP)
             self.solution.append(UP)
         else:
-            print("WARNING | Not running Popils solver because 3SAT could not be solved.")
+            print("INFO | Not running Popils solver because 3SAT was not solved.")
 
     # vector is one of the common vectors imported from common
     def update(self, vector):

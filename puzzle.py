@@ -3,7 +3,7 @@ from common import VARS_PER_CLAUSE, sign
 
 # #SAT instance container and associated methods
 class Puzzle:
-    def __init__(self, filepath):
+    def __init__(self, filepath, should_solve):
         self.three_sat = self.parse(filepath)
         # num_clauses & num_vars are saved during parse()
         self.num_vars = int(self.num_vars)
@@ -11,7 +11,7 @@ class Puzzle:
         print(f"DEBUG | C: {self.num_clauses}, V: {self.num_vars}")
         print("Reducing from: " + str(self))
         self.expanded_form = self.expand()
-        self.solution = self.solve()
+        self.solution = self.solve(should_solve)
 
     # convert 3SAT to an expanded form useful in the popils and megalit reductions
     def expand(self):
@@ -93,31 +93,38 @@ class Puzzle:
 
         return reduced_form
 
-    def solve(self):
-        possible_solutions = 2 ** self.num_vars
-        # compute vector sequence
-        # find the solving variable assignment by brute force
-        for raw_guess in range(possible_solutions):
-            print(f"Guess {raw_guess + 1} / {possible_solutions}", end='\r')
-            # Convert ordinal value of guess to its binary representation
-            format_str = r'{:0' + str(self.num_vars) + r'b}'
-            guess = [int(format_str.format(raw_guess)[j]) *
-                     2 - 1 for j in range(self.num_vars)]
+    def solve(self, should_solve):
+        if should_solve or self.num_vars < 10:
+            possible_solutions = 2 ** self.num_vars
+            # compute vector sequence
+            # find the solving variable assignment by brute force
+            for raw_guess in range(possible_solutions):
+                print(
+                    f"Guess {raw_guess + 1} / {possible_solutions}", end='\r')
+                # Convert ordinal value of guess to its binary representation
+                format_str = r'{:0' + str(self.num_vars) + r'b}'
+                guess = [int(format_str.format(raw_guess)[j]) *
+                         2 - 1 for j in range(self.num_vars)]
 
-            # Save current solution guess iff
-            # Every clause has at least one variable that 'passes'
-            # Meaning it makes the value of the clause 'True'
-            if all([len(self.satisfied_vars(clause, guess)) != 0 for clause in self.three_sat]):
-                truth_assignment = ["T" if val == 1 else "F" for val in guess]
-                print("\n3SAT solution found!")
-                for i in range(len(truth_assignment)):
-                    print(
-                        f"x{i + 1} = {truth_assignment[i]}", end=", " if i != len(truth_assignment) - 1 else "\n\n", flush=True)
-                return guess
+                # Save current solution guess iff
+                # Every clause has at least one variable that 'passes'
+                # Meaning it makes the value of the clause 'True'
+                if all([len(self.satisfied_vars(clause, guess)) != 0 for clause in self.three_sat]):
+                    truth_assignment = ["T" if val ==
+                                        1 else "F" for val in guess]
+                    print("\n3SAT solution found!")
+                    for i in range(len(truth_assignment)):
+                        print(
+                            f"x{i + 1} = {truth_assignment[i]}", end=", " if i != len(truth_assignment) - 1 else "\n\n", flush=True)
+                    return guess
 
-        # If we made it here, none of the guesses were valid solutions to the problem
-        print("WARNING | 3SAT instance is unsolvable!")
-        return []
+            # If we made it here, none of the guesses were valid solutions to the problem
+            print("WARNING | 3SAT instance is unsolvable!")
+            return []
+        else:
+            print(
+                "INFO | 3SAT instance was too long to casually find a solution. Use -s flag to auto-solve.")
+            return []
 
     # given a clause and variable assignment, return the satisfied variables in that clause
     def satisfied_vars(self, clause, assignment):
