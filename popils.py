@@ -1,5 +1,5 @@
-from game import Game, Player, Block
-from common_constants import LEFT, DOWN, UP, RIGHT, ZERO, VARS_PER_CLAUSE, COLORS, Vector, Grid
+from game import Game, Player, Block, Grid
+from common_constants import LEFT, DOWN, UP, RIGHT, Vector
 
 
 # popils-specific gadgets

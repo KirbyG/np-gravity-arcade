@@ -1,8 +1,7 @@
 # this file contains the Megalit class and its Slab helper class
 
-from game import Game, Block, Player
-from common_constants import LEFT, RIGHT, UP, DOWN, ZERO, Vector, Grid, sign
-from math import floor, sqrt
+from game import Game, Block, Player, Grid
+from common_constants import LEFT, RIGHT, UP, DOWN, ZERO, Vector, sign
 
 # Megalit was developed by the ASCII Corporation for the Gameboy
 

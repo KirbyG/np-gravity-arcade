@@ -11,7 +11,7 @@ COLORS = {
     'air': (255, 255, 255),
     'slab': (128, 128, 128),
     'border': (0, 200, 0),
-    'tip':  (128,128,128),
+    'tip':  (128, 128, 128),
     'gripped': (50, 50, 50),
     'background': (0, 0, 0)
 }
@@ -20,6 +20,7 @@ COLORS = {
 # purely mathematical helper function mapping -R -> -1, R -> 1
 def sign(num):
     return 0 if not num else int(abs(num) / num)
+
 
 class Vector:
     def __init__(self, x, y):
@@ -71,44 +72,6 @@ class Vector:
     def __truediv__(self, other):
         return Vector(self.x / other.x, self.y / other.y)
 
-# wrapper for a 2d matrix allowing vector indexing
-class Grid:
-    def __init__(self, *args):
-        if callable(args[-1]):
-            initializer = args[-1]
-            args = args[:-1]
-        else:
-            def initializer(): return None
-        if len(args) == 1:
-            self.dim = args[0]
-        else:
-            self.dim = Vector(args[0], args[1])
-        self.grid = [[initializer() for y in range(self.dim.y)]
-                     for x in range(self.dim.x)]
-
-    def __getitem__(self, key):
-        if type(key) == Vector:
-            return self.grid[int(key.x)][int(key.y)]
-        else:
-            x, y = key
-            return self.grid[int(x)][int(y)]
-
-    def __setitem__(self, key, value):
-        if type(key) == Vector:
-            self.grid[int(key.x)][int(key.y)] = value
-        else:
-            x, y = key
-            self.grid[int(x)][int(y)] = value
-
-    def __repr__(self):
-        result = ''
-        transposed_grid = zip(*self.grid)
-
-        for row in transposed_grid:
-            for block in row[::-1]:  # flip output horizontally
-                result += repr(block) + ' '
-            result += '\n'
-        return result[::-1]  # flip output vertically
 
 LEFT = Vector(-1, 0)
 RIGHT = Vector(1, 0)
