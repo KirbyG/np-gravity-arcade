@@ -1,5 +1,5 @@
 from game import Game, Player, Block, Grid
-from common_constants import LEFT, DOWN, UP, RIGHT, Vector
+from common import LEFT, DOWN, UP, RIGHT, Vector
 
 
 # popils-specific gadgets
@@ -134,7 +134,7 @@ class Popils(Game):
         else:
             print("WARNING | Not running Popils solver because 3SAT could not be solved.")
 
-    # vector is one of the common vectors imported from common_constants
+    # vector is one of the common vectors imported from common
     def update(self, vector):
         target = self.grid[self.player.pos + vector]
 

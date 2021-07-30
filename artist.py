@@ -1,5 +1,5 @@
 import pygame
-from common_constants import LEFT, RIGHT, UP, DOWN, Vector
+from common import LEFT, RIGHT, UP, DOWN, Vector
 
 
 # in charge of drawing Game objects

@@ -1,4 +1,4 @@
-from common_constants import VARS_PER_CLAUSE, sign
+from common import VARS_PER_CLAUSE, sign
 
 
 # #SAT instance container and associated methods

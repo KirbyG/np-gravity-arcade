@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from common_constants import COLORS, Vector
+from common import COLORS, Vector
 
 
 # tile-based game, either popils or megalit
