@@ -30,9 +30,8 @@ class Game(ABC):
     def __repr__(self):
         return repr(self.grid)
 
+
 # this class will populate the game grid. currently this is just a wrapper for a color
-
-
 class Block():
     def __init__(self, type, slab=None, short_sides=None):
         self.type = type
@@ -53,9 +52,8 @@ class Block():
     def __repr__(self):
         return self.type.upper()[0]
 
+
 # wrapper class to track player position
-
-
 class Player():
     def __init__(self, pos):
         self.pos = pos
