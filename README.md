@@ -72,7 +72,6 @@ where `¬` is the logical negation symbol.
     * For in-progress drafts, see email from Aaron
 
 # (Non-exhaustive) TODO List
-* optimize input parsing logic
 * megalit
     * reduction
         * grip choice hysteresis
@@ -82,7 +81,7 @@ where `¬` is the logical negation symbol.
         * solver stub needs fewer steps to pass under the towers
         * slab graphical clarity improvements
     * solver
-* prevent automatic puzzle solving for large instances
+    * megalit demo fully functional
 * refactor code (comments and organization)
     * I'm forgetting what the design pattern is called, but I believe artist
         might be better as a draw function returned from a wrapper function
@@ -117,7 +116,6 @@ where `¬` is the logical negation symbol.
         description of github project
         possibilities for extension
 * polish the spreadsheet
-* megalit demo fully functional
 * skimming
 * port demo from PyGame (python3) to Pico-8 (Lua)
 * host game on Aaron's website

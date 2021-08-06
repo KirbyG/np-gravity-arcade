@@ -11,7 +11,7 @@ from puzzle import Puzzle
 from popils import Popils
 from megalit import Megalit
 from artist import Artist
-from common import LEFT, RIGHT, DOWN, UP, ZERO, Vector
+from common import LEFT, RIGHT, DOWN, UP, ZERO
 
 # default 3SAT instance. Will be ignored if user provides alternative
 DEFAULT_3SAT = "examples/default.cnf"
