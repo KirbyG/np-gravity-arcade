@@ -1,8 +1,7 @@
 # this file contains the Megalit class and its Slab helper class
 
-from game import Game, Block, Player
-from common_constants import LEFT, RIGHT, UP, DOWN, ZERO, Vector, Grid, sign
-from math import floor, sqrt
+from game import Game, Block, Player, Grid
+from common import LEFT, RIGHT, UP, DOWN, ZERO, Vector, sign
 
 # Megalit was developed by the ASCII Corporation for the Gameboy
 
@@ -204,104 +203,106 @@ class Megalit(Game):
     # the solving move sequence for Megalit is significantly longer than for Popils
     def solve(self):
         self.solution = []
-
-        # set variables
-        for var, setting in enumerate(self.puzzle.solution):
-            # approach the table
-            self.travel(2 * RIGHT)
-
-            # drop the tower if necessary
-            if setting == 1:
-                self.climb_stairs(RIGHT)
-                self.travel(RIGHT)
-                self.move(LEFT)
-                self.travel(LEFT)
-
-            if var != self.puzzle.num_vars - 1:
-                # crawl under the table
-                self.crawl_under_table(RIGHT, table_width=5)
-
-                # approach the climbing tower
-                self.travel(4 * RIGHT)
-
-                # crawl under the climbing tower
-                self.crawl_under_table(RIGHT, table_width=17, splay=5)
-
-                # get in position for the next iteration
+        if self.puzzle.solution:
+            # set variables
+            for var, setting in enumerate(self.puzzle.solution):
+                # approach the table
                 self.travel(2 * RIGHT)
 
-        # climb onto the first level of the tower
+                # drop the tower if necessary
+                if setting == 1:
+                    self.climb_stairs(RIGHT)
+                    self.travel(RIGHT)
+                    self.move(LEFT)
+                    self.travel(LEFT)
 
-        # steal a table leg for use as a trampoline
-        self.travel(3 * RIGHT)
-        self.move(4 * LEFT)
-        self.super_knight(RIGHT)
-        self.move(LEFT)
+                if var != self.puzzle.num_vars - 1:
+                    # crawl under the table
+                    self.crawl_under_table(RIGHT, table_width=5)
 
-        # jump on the trampoline
-        self.climb_stairs(2 * LEFT)
+                    # approach the climbing tower
+                    self.travel(4 * RIGHT)
 
-        # establish position tracking variables
+                    # crawl under the climbing tower
+                    self.crawl_under_table(RIGHT, table_width=17, splay=5)
 
-        # which tower are we on
-        tower = self.puzzle.num_vars - 1.5
+                    # get in position for the next iteration
+                    self.travel(2 * RIGHT)
 
-        # which side of the tower are we climbing in from
-        travel_dir = RIGHT
+            # climb onto the first level of the tower
 
-        # solve each clause
-        for _, clause in enumerate(self.puzzle.expanded_form):
-            # get to the main floor
+            # steal a table leg for use as a trampoline
+            self.travel(3 * RIGHT)
+            self.move(4 * LEFT)
+            self.super_knight(RIGHT)
+            self.move(LEFT)
 
-            # crawl under the support table
-            self.travel(-2 * travel_dir)
-            self.inswitch(-1 * travel_dir)
-            self.move(-3 * travel_dir)
+            # jump on the trampoline
+            self.climb_stairs(2 * LEFT)
 
-            # climb onto the 1 x 5
-            self.climb_stairs(-2 * travel_dir)
+            # establish position tracking variables
 
-            # find the closest tower that we can use to escape
-            target_tower = abs(self.puzzle.satisfied_vars(
-                self.puzzle.three_sat[_], self.puzzle.solution)[0]) - 1
+            # which tower are we on
+            tower = self.puzzle.num_vars - 1.5
 
-            # determine the direction of travel
-            travel_dir = sign(target_tower - tower) * RIGHT
+            # which side of the tower are we climbing in from
+            travel_dir = RIGHT
 
-            self.super_knight(travel_dir)
-            self.outcross(travel_dir)
-            tower += 0.5 * travel_dir.x
+            # solve each clause
+            for _, clause in enumerate(self.puzzle.expanded_form):
+                # get to the main floor
 
-            # now we loop until we are in position
-            while round(tower) != target_tower:
-                print(round(tower), target_tower)
-                self.varcross(travel_dir, clause[round(tower)])
-                self.towercross(travel_dir)
-                tower += travel_dir.x
-            self.use_tower(travel_dir)
-            tower -= 0.5 * travel_dir.x
+                # crawl under the support table
+                self.travel(-2 * travel_dir)
+                self.inswitch(-1 * travel_dir)
+                self.move(-3 * travel_dir)
 
-        # self.use_mineshaft(side)
+                # climb onto the 1 x 5
+                self.climb_stairs(-2 * travel_dir)
 
-        # run across to the bulldozer
+                # find the closest tower that we can use to escape
+                target_tower = abs(self.puzzle.satisfied_vars(
+                    self.puzzle.three_sat[_], self.puzzle.solution)[0]) - 1
 
-        # bulldozer operation loop
-        while False:
-            # loop up the bulldozer arms pushing them in as far as possible until we can remove a slab from the haunted house
-            # pull the targeted slab into position above the trash compactor
-            # loop back down the bulldozer arms
-            # climb back over the bulldozer
-            # operate the trash compactor
-            # push the targeted slab to the end of the dump
-            # climb back over the trash compactor
-            # reset the trash compactor
-            # climb out of the garbage zone
-            # climb back over the bulldozer
-            # reset the bulldozer
-            # move to the base of the bulldozer
-            pass
+                # determine the direction of travel
+                travel_dir = sign(target_tower - tower) * RIGHT
 
-        # dismantle the bulldozer
+                self.super_knight(travel_dir)
+                self.outcross(travel_dir)
+                tower += 0.5 * travel_dir.x
+
+                # now we loop until we are in position
+                while round(tower) != target_tower:
+                    print(round(tower), target_tower)
+                    self.varcross(travel_dir, clause[round(tower)])
+                    self.towercross(travel_dir)
+                    tower += travel_dir.x
+                self.use_tower(travel_dir)
+                tower -= 0.5 * travel_dir.x
+
+            # self.use_mineshaft(side)
+
+            # run across to the bulldozer
+
+            # bulldozer operation loop
+            while False:
+                # loop up the bulldozer arms pushing them in as far as possible until we can remove a slab from the haunted house
+                # pull the targeted slab into position above the trash compactor
+                # loop back down the bulldozer arms
+                # climb back over the bulldozer
+                # operate the trash compactor
+                # push the targeted slab to the end of the dump
+                # climb back over the trash compactor
+                # reset the trash compactor
+                # climb out of the garbage zone
+                # climb back over the bulldozer
+                # reset the bulldozer
+                # move to the base of the bulldozer
+                pass
+
+            # dismantle the bulldozer
+        else:
+            print("INFO | Not running Megalit solver because 3SAT was not solved.")
 
     # UPDATE - support gameplay
 

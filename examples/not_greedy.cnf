@@ -1,0 +1,44 @@
+c Example taken from https://math.stackexchange.com/questions/2527650/an-example-when-greedy-algorithm-wont-solve-3-sat-problem
+c This serves as a 3SAT example that cannot be solved with 
+c a simple greedy algorithm, but can be solved less efficiently
+p cnf 5 33
+
+-1 2 3 0
+-2 1 3 0
+-3 1 2 0
+-4 1 2 0
+-5 1 2 0
+
+-1 2 4 0
+-2 1 4 0
+-3 1 4 0
+-4 1 3 0
+-5 1 3 0
+
+-1 2 5 0
+-2 1 5 0
+-3 1 5 0
+-4 1 5 0
+-5 1 4 0
+
+-1 3 4 0
+-2 3 4 0
+-3 2 4 0
+-4 2 3 0
+-5 2 3 0
+
+-1 3 5 0
+-2 3 5 0
+-3 2 5 0
+-4 2 5 0
+-5 2 4 0
+
+-1 4 5 0
+-2 4 5 0
+-3 4 5 0
+-4 3 5 0
+-5 3 4 0
+
+-1 -2 -3 0
+-1 -2 -4 0
+-3 -4 -5 0
