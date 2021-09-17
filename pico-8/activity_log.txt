@@ -1,0 +1,17 @@
+
+2021-09-02 21:33:06 /Users/kirby/Library/Application Support/pico-8/carts/untitled.p8
+ i...ii.........i.........i.........ii..i.........iiii
+2021-09-02 21:55:43 /Users/kirby/Library/Application Support/pico-8/carts/tutorial.p8.png
+ ic.ggg.g.gg.g.....ggggggg......ggggggggggggggggg...m..m.........mmmmmmmmmmmmmmmm
+ mmmmmmmmmmmmmmmmmmmmmmmm.........mmmmmmmmmmmmmmmccgsstmmmm.....mmmm...mmmmmmmmmm
+ mmmm.........mmmmmmm.........m.........i
+2021-09-17 17:16:31 /Users/kirby/Library/Application Support/pico-8/carts/untitled.p8
+ ii.........iccii.i.........i
+2021-09-17 17:17:58 /Users/kirby/Library/Application Support/pico-8/carts/popils.p8
+ i.ii...gg.........gc.........cccccc....ccccccccccccccc.........c.........ccccc.c
+ ..cctccc.........cc.....cccccc..cc.......ir____rri.cccc..cirii.........iiii.....
+ ....ii.........ii.........iiiii
+2021-09-17 17:36:21 /Users/kirby/Library/Application Support/pico-8/carts/untitled.p8
+ ii
+2021-09-17 17:36:27 /Users/kirby/Library/Application Support/pico-8/carts/popils.p8
+ 

@@ -1,0 +1,79 @@
+[000000] codo_init
+[000000]   platform: Max OS X
+[000000]   Found config.txt
+[000000]   
+[000000]     01 window_size 0 0 // window width, height
+[000000]     02 screen_size 0 0 // screen width, height (stretched to window) 
+[000000]     03 show_fps 0 // Draw frames per second in the corner
+[000000]     04 windowed 0 // 1 to start up in windowed mode
+[000000]     05 window_position -1 -1 // x and y position of window (-1, -1 to let the window manager decide)
+[000000]     new window position: -1, -1
+[000000]     06 frameless 0 // 1 to use a window with no frame
+[000000]     07 fullscreen_method 1 // 0 maximized window (linux)  1 borderless desktop-sized window  2 fullscreen
+[000000]     08 foreground_sleep_ms 2 // number of milliseconds to sleep each frame. Try 10 to conserve battery power
+[000000]     09 background_sleep_ms 10 // number of milliseconds to sleep each frame when running in the background
+[000000]     10 sessions 2 // number of times program has been run
+[000000]     11 rmb_key 0 // 0 for none  226 for LALT
+[000000]     12 desktop_path 
+[000000]     13 sound_volume 256 // 0..256
+[000000]     14 music_volume 256 // 0..256
+[000000]     15 mix_buffer_size 1024
+[000000]     16 version 0.2.2c
+[000000]     17 volume 256
+[000000]     18 root_path /Users/kirby/Library/Application Support/pico-8/carts/
+[000000]     19 cdata_path /Users/kirby/Library/Application Support/pico-8/cdata/
+[000000]     20 joystick_index 0
+[000000]     21 button_keys 0 0 0 0 0 0 0 0 0 0 0 0 0 
+[000000]     22 live_notes 0
+[000000]     23 cursor_snap 0
+[000000]     24 gui_theme 0
+[000000]     25 screenshot_scale 3
+[000000]     26 gif_scale 3
+[000000]     27 gif_len 8
+[000000]     28 gif_reset_mode 0
+[000000]     29 host_framerate_control 1
+[000000]     30 splore_filter 0
+[000000]     31 tab_width 1
+[000000]     32 draw_tabs 0
+[000000]     33 record_activity_log 1
+[000000]     34 allow_function_keys 1
+[000000]     35 check_for_cart_updates 1
+[000000]   
+[000000]   codo_system_init
+[000493]   Compiled against SDL version: 2.0.12
+[000493]   Linked against SDL version:   2.0.12
+[000493]   Current video driver: cocoa
+[000493]   codo_reset_timer
+[000493]   codo_gui_init
+[000493]   codo_keys_init
+[000493]   codo_text_init
+[000493]   codo_video_init
+[000493]   codo_mouse_init
+[000493]   codo_joystick_init
+[000494]   Reading controller mappings: /Users/kirby/Library/Application Support/pico-8/sdl_controllers.txt
+[000494]   searching for joysticks
+[000494]     found 0 joysticks
+[000494]   ok
+[000495] ok
+[000508] codo_load_pod: /private/var/folders/6z/wzxqvlk50611h4r_8whfjdvw0000gn/T/AppTranslocation/5CCCF9EA-C5D2-4B59-B2B0-B1325D5185A2/d/PICO-8.app/Contents/MacOS/pico8.dat ok 
+[000511] codo_set_screen 128 128 8 100
+[000511]  window size: 640 540
+[000511] setting fullscreen window size to 1680 1050
+[001174]   setting filter to nearest (screen_mode 1  back page width: 128)
+  renderer metal:
+   flags: 0x0000000E ( |  | )
+   texture formats (6): ARGB8888, ABGR8888, YV12, IYUV, 0x3231564e, 0x3132564e
+   max texture size: 16384x16384
+[001176]  desktop size: 1680 1050
+[001176] ok
+[001183] codo_sound_init mix_buffer_size: 1024
+[001183] codo_sound_init
+[001183] SDL_INIT_AUDIO ok
+[001249] SDL_OpenAudio ok
+[001249]  freq:22050
+ channels:1
+[001249] Built-in audio drivers: 0 coreaudio 1 disk 2 dummy
+[001249] Current audio driver: coreaudio
+[001249] splore_init
+[001250] could not load favourites file: /Users/kirby/Library/Application Support/pico-8/favourites.txt
+[010833] launch: [open "/Users/kirby/Library/Application Support/pico-8/carts/"] result: 0
