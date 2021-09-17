@@ -4,6 +4,13 @@ simple arcade games that rely on gravity as a primary mechanic. This project
 supports an upcoming paper that applies the technique to the games *Popils*
 and *Megalit*.
 
+## Installation
+Use the command
+```
+pip install -r requirements.txt
+```
+to install the required python modules. We recommend installing these dependencies in a virtual environment, either handled by Anaconda and its variants or by the built-in `venv` tool for Python3.
+
 ## Usage
 ```
 ./np-gravity.py [-h] [-f FILENAME] [-s] [-m]
