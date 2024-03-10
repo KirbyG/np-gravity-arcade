@@ -1,8 +1,8 @@
 # Reducing 3SAT to Gravity-based Arcade Games
 We have developed a novel proof technique for demonstrating NP-completeness of
 simple arcade games that rely on gravity as a primary mechanic. This project
-supports an upcoming paper that applies the technique to the games *Popils*
-and *Megalit*.
+supports [this paper](https://www.researchgate.net/publication/361912480_Unstacking_Slabs_Safely_in_Megalit_is_NP-Hard) that applies the technique to the games [Popils](https://www.youtube.com/watch?v=2c5qgU0tvlk)
+and [Megalit](https://www.youtube.com/watch?v=kWxrch10dWA).
 
 ## Usage
 ```
