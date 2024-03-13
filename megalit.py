@@ -1,7 +1,9 @@
 # this file contains the Megalit class and its Slab helper class
 
 from game import Game, Block, Player, Grid
-from common import LEFT, RIGHT, UP, DOWN, ZERO, Vector, sign
+from common import LEFT, RIGHT, UP, DOWN, ZERO, sign, X, Y
+import numpy as np
+
 
 # Megalit was developed by the ASCII Corporation for the Gameboy
 
@@ -49,17 +51,17 @@ class Megalit(Game):
     def build_var_tower(self, var):
         # var setter area
         x = 6 + 32 * var
-        self.build_table(Vector(x, 1), width=5)
-        self.slabs.append(Slab(self.grid, Vector(x, 4), RIGHT))
-        self.slabs.append(Slab(self.grid, Vector(x, 5), 3 * UP))
+        self.build_table(np.arr([x, 1]), width=5)
+        self.slabs.append(Slab(self.grid, np.arr([x, 4]), RIGHT))
+        self.slabs.append(Slab(self.grid, np.arr([x, 5]), 3 * UP))
 
         # top of level filler
-        for y in range(self.grid.dim.y - 6, self.grid.dim.y - 1):
-            self.slabs.append(Slab(self.grid, Vector(x - 4, y), 9 * RIGHT))
+        for y in range(self.grid.shape.Y - 6, self.grid.shape.Y - 1):
+            self.slabs.append(Slab(self.grid, np.arr([x - 4, y]), 9 * RIGHT))
 
         # actual tower
         for clause in range(self.puzzle.num_clauses):
-            self.build_gadget(Vector(x, 8 + 13 * clause),
+            self.build_gadget(np.arr([x, 8 + 13 * clause]),
                               self.magic(self.puzzle.expanded_form[clause][var]))
 
     def build_climbing_story(self, bottom_center, crunch=False):
@@ -87,18 +89,22 @@ class Megalit(Game):
         # for now, just build a static level to test game mechanics
 
         # initialize to air blocks
-        self.grid = Grid(3 + (self.puzzle.num_vars - 1) * 23 + self.puzzle.num_vars * 9,
-                         2 + 7 + 13 * self.puzzle.num_clauses + 5, lambda: Block('air'))
-
+        self.grid = np.fromfunction(
+            lambda: Block('air'),
+            (
+                (self.puzzle.num_vars - 1) * 23 + self.puzzle.num_vars * 9,
+                2 + 7 + 13 * self.puzzle.num_clauses + 5
+            )
+        )
         # bottom and top
-        for x in range(self.grid.dim.x):
+        for x in range(self.grid.shape.X):
             self.grid[x, 0].type = 'border'
-            self.grid[x, self.grid.dim.y - 1].type = 'border'
+            self.grid[x, self.grid.shape.Y - 1].type = 'border'
 
         # sides
-        for y in range(self.grid.dim.y):
+        for y in range(self.grid.shape.Y):
             self.grid[0, y].type = 'border'
-            self.grid[self.grid.dim.x - 1, y].type = 'border'
+            self.grid[self.grid.shape.X - 1, y].type = 'border'
 
         # container for all slabs in the level
         self.slabs = []
@@ -107,14 +113,14 @@ class Megalit(Game):
 
         # climbing towers
         for var in range(self.puzzle.num_vars - 1):
-            self.build_climbing_tower(Vector(22 + 32 * var, 1))
+            self.build_climbing_tower(np.arr([22 + 32 * var, 1]))
 
         # var towers
         for var in range(self.puzzle.num_vars):
             self.build_var_tower(var)
 
         # player start position
-        self.player = Player(Vector(1, 1))
+        self.player = Player(np.arr([1, 1]))
 
     # SOLVE - automatically generate the solution to the level
 
@@ -133,9 +139,8 @@ class Megalit(Game):
         self.solution.append(UP)
         self.travel(2 * dir)
 
-    def climb_stairs(self, vector):
-        self.solution.extend([UP, vector.normalize(), DOWN]
-                             * round(vector.magnitude))
+    def climb_stairs(self, vector, steps):
+        self.solution = np.append(self.solution, np.tile([UP, vector, DOWN], steps))
 
     def inswitch(self, dir, table_width=3, splay=1):
         leg_gap = (table_width - 2 - splay) / 2
@@ -178,17 +183,17 @@ class Megalit(Game):
         # inswitch
         self.inswitch(dir, table_width=table_width, splay=splay)
         # cross
-        self.travel(max(1, splay - 1) * dir)
+        self.travel(dir, max(1, splay - 1))
         # outswitch
         self.outswitch(dir, table_width=table_width, splay=splay)
 
     def incross(self, dir):
-        self.travel(2 * dir)
+        self.travel(dir, 2)
         self.inswitch(dir, table_width=17, splay=5)
 
     def outcross(self, dir):
         self.outswitch(dir, table_width=17, splay=5)
-        self.travel(2 * dir)
+        self.travel(dir, 2)
 
     def gapcross(self, dir):
         self.super_knight(dir)
@@ -207,7 +212,7 @@ class Megalit(Game):
             # set variables
             for var, setting in enumerate(self.puzzle.solution):
                 # approach the table
-                self.travel(2 * RIGHT)
+                self.travel(RIGHT, 2)
 
                 # drop the tower if necessary
                 if setting == 1:
@@ -221,19 +226,19 @@ class Megalit(Game):
                     self.crawl_under_table(RIGHT, table_width=5)
 
                     # approach the climbing tower
-                    self.travel(4 * RIGHT)
+                    self.travel(RIGHT, 4)
 
                     # crawl under the climbing tower
                     self.crawl_under_table(RIGHT, table_width=17, splay=5)
 
                     # get in position for the next iteration
-                    self.travel(2 * RIGHT)
+                    self.travel(RIGHT, 2)
 
             # climb onto the first level of the tower
 
             # steal a table leg for use as a trampoline
-            self.travel(3 * RIGHT)
-            self.move(4 * LEFT)
+            self.travel(RIGHT, 3)
+            self.move(LEFT, 4)
             self.super_knight(RIGHT)
             self.move(LEFT)
 
