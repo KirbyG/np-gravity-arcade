@@ -1,6 +1,6 @@
-from game import Game, Player, Block, Grid
-from common import LEFT, DOWN, UP, RIGHT, Vector
-
+from game import Game, Player, Block
+from common import LEFT, DOWN, UP, RIGHT, X, Y
+import numpy as np
 
 # popils-specific gadgets
 SUB_GADGET_NEGATED = ['ladder', 'ladder', 'support', 'ladder']
@@ -16,14 +16,18 @@ GADGET_HEIGHT = 6
 class Popils(Game):
     def __init__(self, puzzle):
         self.puzzle = puzzle
-        self.player = Player(Vector(1, 1))
+        self.player = Player(np.arr([1, 1]))
         super().__init__(puzzle)
 
     def reduce(self):
         # set dimensions of grid and initialize
-        x_dim = 3 + (2 * self.puzzle.num_vars)
-        y_dim = 6 * (self.puzzle.num_clauses + 1)
-        self.grid = Grid(x_dim, y_dim, lambda: Block('hard'))
+        self.grid = np.fromfunction(
+            lambda: Block('hard'),
+            (
+                3 + (2 * self.puzzle.num_vars),
+                6 * (self.puzzle.num_clauses + 1)
+            )
+        )
 
         # build static level features
         self.build_frame()
@@ -34,21 +38,21 @@ class Popils(Game):
     # reduce helper function: create static areas of the grid that depend only on instance size
     def build_frame(self):
         # Starting zone
-        for x in range(self.player.pos.x, self.grid.dim.x - 2):
-            self.grid[x, self.player.pos.y].type = 'support'
+        for x in range(self.player.pos[X], self.grid.shape.X - 2):
+            self.grid[x, self.player.pos[Y]].type = 'support'
 
-        self.grid[self.grid.dim.x - 2, self.player.pos.y].type = 'ladder'
+        self.grid[self.grid.shape.X - 2, self.player.pos[Y]].type = 'ladder'
 
-        for x in range(self.player.pos.x, self.grid.dim.x - 3, 2):
+        for x in range(self.player.pos[X], self.grid.shape.X - 3, 2):
             self.grid[x, 2].type = 'breakable'
 
-        self.grid[self.grid.dim.x - 2, 2].type = 'ladder'
+        self.grid[self.grid.shape.x - 2, 2].type = 'ladder'
 
         # Ending zone
-        self.grid[self.grid.dim.x - 2, self.grid.dim.y - 2].type = 'princess'
+        self.grid[self.grid.shape.X - 2, self.grid.shape.Y - 2].type = 'princess'
 
         # Stop princess from walking
-        self.grid[self.grid.dim.x - 2, self.grid.dim.y - 3].type = 'breakable'
+        self.grid[self.grid.shape.X - 2, self.grid.shape.Y - 3].type = 'breakable'
 
     # reduce helper function
 
@@ -63,13 +67,13 @@ class Popils(Game):
     # reduce helper function
     def place_gadget(self, variable_states, bottom_y):
         # Create transition to next zone
-        self.grid[self.grid.dim.x - 2, bottom_y].type = 'ladder'
-        self.grid[self.grid.dim.x - 2, bottom_y + 1].type = 'support'
+        self.grid[self.grid.shape.X - 2, bottom_y].type = 'ladder'
+        self.grid[self.grid.shape.X - 2, bottom_y + 1].type = 'support'
 
         # bottom_y + 2 is already correctly set to 'hard'
-        self.grid[self.grid.dim.x - 2, bottom_y + 3].type = 'ladder'
-        self.grid[self.grid.dim.x - 2, bottom_y + 4].type = 'ladder'
-        self.grid[self.grid.dim.x - 2, bottom_y + 5].type = 'ladder'
+        self.grid[self.grid.shape.X - 2, bottom_y + 3].type = 'ladder'
+        self.grid[self.grid.shape.X - 2, bottom_y + 4].type = 'ladder'
+        self.grid[self.grid.shape.X - 2, bottom_y + 5].type = 'ladder'
 
         # Carve out walkable area, skipping gadget columns
         for x in range(2, self.grid.dim.x - 2, 2):
@@ -90,21 +94,18 @@ class Popils(Game):
 
     # compute the popils-specific solving move sequence for the given 3SAT instance
     def solve(self):
-        self.solution = []
+        sol = np.empty(0)
         if self.puzzle.solution:
             # make variable assignments
             for truthiness in self.puzzle.solution:
                 if truthiness == 1:
-                    self.solution.append(UP)
-                self.solution.append(RIGHT)
-                self.solution.append(RIGHT)
+                    sol = np.append(sol, UP)
+                sol = np.concatenate([sol, np.tile(RIGHT, 2)])
 
             # traverse level
             for clause in range(self.puzzle.num_clauses):
                 # climb ladder to enter clause
-                self.solution.append(UP)
-                self.solution.append(UP)
-                self.solution.append(UP)
+                sol = np.concatenate([sol, np.tile(UP, 3)])
 
                 # find nearest viable ladder
                 satisfied = self.puzzle.satisfied_vars(
@@ -113,26 +114,22 @@ class Popils(Game):
                 lateral_blocks = 2 * (self.puzzle.num_vars + 1 - closest)
 
                 # move to nearest viable ladder
-                for i in range(lateral_blocks):
-                    self.solution.append(LEFT)
+                sol = np.concatenate([sol, np.tile(LEFT, lateral_blocks)])
 
                 # climb to next clause
-                self.solution.append(UP)
-                self.solution.append(UP)
+                sol = np.concatenate([sol, np.tile(UP, 2)])
 
                 # go back to the main ladder
-                for i in range(lateral_blocks):
-                    self.solution.append(RIGHT)
+                sol = np.concatenate([sol, np.tile(RIGHT, lateral_blocks)])
 
                 # get in position to traverse the next clause
-                self.solution.append(UP)
+                sol = np.append(sol, UP)
 
             # climb to princess!
-            self.solution.append(UP)
-            self.solution.append(UP)
-            self.solution.append(UP)
+            sol = np.concatenate([sol, np.tile(UP, 3)])
         else:
             print("INFO | Not running Popils solver because 3SAT was not solved.")
+        return sol
 
     # vector is one of the common vectors imported from common
     def update(self, vector):
@@ -140,9 +137,9 @@ class Popils(Game):
 
         if vector == UP:
             if target.type == 'breakable':
-                for falling_y in range(self.player.pos.y + 1, self.grid.dim.y - 1):
-                    self.grid[self.player.pos.x,
-                              falling_y] = self.grid[self.player.pos.x, falling_y + 1]
+                for falling_y in range(self.player.pos[Y] + 1, self.grid.shape.Y - 1):
+                    self.grid[self.player.pos[X],
+                              falling_y] = self.grid[self.player.pos[X], falling_y + 1]
             elif self.grid[self.player.pos].type == 'ladder' and (target.type != 'hard'):
                 self.move(UP)
         elif target.type != 'hard':

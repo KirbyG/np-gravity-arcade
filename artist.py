@@ -1,52 +1,48 @@
 import pygame
-from common import LEFT, RIGHT, UP, DOWN, Vector
+from common import LEFT, RIGHT, UP, DOWN, X, Y, COLORS, ZERO
+import numpy as np
 
+v_min = np.vectorize(min)
+v_max = np.vectorize(max)
+v_int = np.vectorize(int)
 
 # in charge of drawing Game objects
 class Artist:
     def __init__(self, game):
         self.game = game
 
-        # locate the window in the upper left
-        # os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0, 0)
         # pygame setup
         pygame.init()
         pygame.display.set_caption(f'{type(game).__name__} Reduction')
 
         # compute constants
 
-        # this is the approximate height of the menu bar at the top of iOS
-        BUFFER = 280
+        # this is the approximate height of the menu bar at the top of MacOS
+        BUFFER_PX = 280
 
         # how much display space we have to work with
-        SCREEN_DIM = Vector(pygame.display.Info().current_w -
-                            BUFFER, pygame.display.Info().current_h - BUFFER)
+        SCREEN_PX = np.arr([
+            pygame.display.Info().current_w,
+            pygame.display.Info().current_h
+        ]) - BUFFER_PX
 
-        # how big could each block dimension be if we used the whole display
-        FITTED_BLOCK_DIM = SCREEN_DIM / game.grid.dim
-
-        MIN_BLOCK_DIM = 15  # arbitrary cutoff for ease of visualization
-
-        # blocks need to be square and not smaller than the min
-        self.BLOCK_DIM = max(MIN_BLOCK_DIM, min(FITTED_BLOCK_DIM()))
+        # blocks are at least 15px, but can be larger when the grid is small
+        self.BLOCK_PX = max(15, np.min(SCREEN_PX / game.grid.shape))
 
         # limit the max window dimension to fit on the display, and ensure it multiplies the block dimension
-        window_width = min(SCREEN_DIM.x - (SCREEN_DIM.x %
-                                           self.BLOCK_DIM), self.BLOCK_DIM * game.grid.dim.x)
-        window_height = min(SCREEN_DIM.y - (SCREEN_DIM.y %
-                                            self.BLOCK_DIM), self.BLOCK_DIM * game.grid.dim.y)
-        self.WINDOW_DIM = Vector(round(window_width), round(window_height))
+        self.WINDOW_PX = v_min(
+            SCREEN_PX - (SCREEN_PX % self.BLOCK_PX),
+            self.BLOCK_PX * game.grid.shape
+        )
 
         # the number of blocks that will fit in a window at a time
-        self.WINDOW_BLOCKS = Vector(round(
-            self.WINDOW_DIM.x / self.BLOCK_DIM), round(self.WINDOW_DIM.y / self.BLOCK_DIM))
+        self.VIEWPORT_SHAPE = self.WINDOW_PX / self.BLOCK_PX
 
         # position of the player on the screen while scrolling is active
-        self.CENTER = Vector(int(self.WINDOW_BLOCKS.x / 2),
-                             int(self.WINDOW_BLOCKS.y / 2))
+        self.CENTER = v_int(self.VIEWPORT_SHAPE / 2)
 
         # store pygame resources
-        self.screen = pygame.display.set_mode(self.WINDOW_DIM())
+        self.screen = pygame.display.set_mode(self.WINDOW_PX)
         self.clock = pygame.time.Clock()
 
         # initial render
@@ -57,11 +53,9 @@ class Artist:
     # left corner of the window to be the origin, while all logical objects
     # rely on a more standard coordinate system originating in the lower left
     def grid_to_px(self, x, y, offset):
-        corner_x = (x - offset.x) * self.BLOCK_DIM + 1
-        corner_y = (self.WINDOW_BLOCKS.y - 1 - (y - offset.y)) * \
-            self.BLOCK_DIM + 1
-        width = height = self.BLOCK_DIM
-        return [corner_x, corner_y, width, height]
+        corner_x = (x - offset[X]) * self.BLOCK_PX + 1
+        corner_y = (self.VIEWPORT_SHAPE[Y] - 1 - (y - offset[Y])) * self.BLOCK_PX + 1
+        return [corner_x, corner_y, self.BLOCK_PX, self.BLOCK_PX]
 
     def shrink(self, rect, short_sides):
         reduction = 1
@@ -77,25 +71,31 @@ class Artist:
 
     def draw(self):
         # compute the offset vector
-        x_offset = min(self.game.grid.dim.x - self.WINDOW_BLOCKS.x,
-                       max(0, self.game.player.pos.x - self.CENTER.x))
-        y_offset = min(self.game.grid.dim.y - self.WINDOW_BLOCKS.y,
-                       max(0, self.game.player.pos.y - self.CENTER.y))
-        offset = Vector(x_offset, y_offset)
+        offset = v_min(
+            self.game.grid.shape - self.VIEWPORT_SHAPE,
+            v_max(ZERO, self.game.player.pos - self.CENTER)
+        )
 
         # set the background to black
-        pygame.draw.rect(self.screen, (255, 255, 255), [
-                         0, 0, self.WINDOW_DIM.x, self.WINDOW_DIM.y])
+        pygame.draw.rect(
+            self.screen,
+            COLORS.air,
+            [0, 0, self.WINDOW_PX[X], self.WINDOW_PX[Y]])
 
         # draw the subgrid
-        for x in range(offset.x, offset.x + self.WINDOW_BLOCKS.x):
-            for y in range(offset.y, offset.y + self.WINDOW_BLOCKS.y):
+        for x in range(offset[X], offset[X] + self.VIEWPORT_SHAPE[X]):
+            for y in range(offset[Y], offset[Y] + self.VIEWPORT_SHAPE[Y]):
                 pygame.draw.rect(
-                    self.screen, self.game.grid[x, y].color, self.shrink(self.grid_to_px(x, y, offset), self.game.grid[x, y].short_sides))
+                    self.screen,
+                    self.game.grid[x, y].color,
+                    self.shrink(self.grid_to_px(x, y, offset),self.game.grid[x, y].short_sides)
+                )
 
         # draw player
-        pygame.draw.rect(self.screen, self.game.player.color, self.grid_to_px(
-            self.game.player.pos.x, self.game.player.pos.y, offset))
+        pygame.draw.rect(
+            self.screen,
+            COLORS.player,
+            self.grid_to_px(self.game.player.pos[X], self.game.player.pos[Y], offset))
 
         # display the result
         pygame.display.update()

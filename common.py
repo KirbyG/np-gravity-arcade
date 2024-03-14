@@ -15,7 +15,8 @@ COLORS = {
     'border': (0, 200, 0),
     'tip':  (128, 128, 128),
     'gripped': (50, 50, 50),
-    'background': (0, 0, 0)
+    'background': (0, 0, 0),
+    'player': (255, 0, 0),
 }
 
 # purely mathematical helper function mapping -R -> -1, R -> 1

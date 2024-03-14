@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from common import COLORS, ZERO, _
+from common import COLORS, ZERO
 import numpy as np
 
 # tile-based game, either popils or megalit
@@ -24,7 +24,7 @@ class Game(ABC):
         self.complete = False
         self.puzzle = puzzle
         self.reduce()  # build the grid
-        self.solve()  # build the solution
+        self.solution = self.solve()  # build the solution
         self.solution_step = 0
 
     def __repr__(self):
@@ -58,12 +58,4 @@ class Block():
 class Player():
     def __init__(self, pos):
         self.pos = pos
-        self.color = (255, 0, 0)  # red
         self.gripping = ZERO
-
-
-# wrapper for a 2d matrix allowing vector indexing
-class Grid:
-    def __init__(self, dim, initializer):
-        self.dim = dim
-        self.initializer = initializer
