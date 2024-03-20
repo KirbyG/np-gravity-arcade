@@ -1,4 +1,4 @@
-from game import Game, Player, Block
+from game import Game
 from common import LEFT, DOWN, UP, RIGHT
 from common import X, Y
 from common import LADDER, SUPPORT, HARD, BREAKABLE, PRINCESS
@@ -19,7 +19,7 @@ GADGET_HEIGHT = 6
 class Popils(Game):
     def __init__(self, puzzle):
         self.puzzle = puzzle
-        self.player = Player(np.array([1, 1]))
+        self.player = np.array([1, 1])
         super().__init__(puzzle)
 
     ############################################################################
@@ -149,19 +149,20 @@ class Popils(Game):
 
     # SOLVE HELPER
     def update(self, movement):
-        target = self.grid[self.player + movement]
+        target = self.grid[_(self.player + movement)]
 
-        if movement == UP:
+        if all(movement == UP):
             if target == BREAKABLE:
-                airspace = np.arange(self.player[Y] + 1, self.grid.shape[Y] - 1)
+                airspace = np.arange(self.player[Y] + 1, self.grid.shape[Y])
                 np.put(
                     self.grid[self.player[X],:],#along the y-axis
                     airspace - 1,#to top
-                    self.grid[self.player[X],airspace[0]:airspace[-1]]
+                    self.grid[self.player[X],airspace[0]:airspace[-1]+1]
                 )
+                self.grid[_(self.player)] = SUPPORT
             elif self.grid[_(self.player)] == LADDER and (target != HARD):
                 self.move(UP)
-        elif target.type != HARD:
+        elif target != HARD:
             self.move(movement)
             while (
                 self.grid[_(self.player + DOWN)] == SUPPORT and

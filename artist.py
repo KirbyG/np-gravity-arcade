@@ -41,7 +41,7 @@ class Artist:
         )
 
         # the number of blocks that will fit in a window at a time
-        self.VIEWPORT_SHAPE = self.WINDOW_PX / self.BLOCK_PX
+        self.VIEWPORT_SHAPE = v_int(self.WINDOW_PX / self.BLOCK_PX)
 
         # position of the player on the screen while scrolling is active
         self.CENTER = v_int(self.VIEWPORT_SHAPE / 2)
@@ -92,8 +92,8 @@ class Artist:
             for y in range(offset[Y], offset[Y] + self.VIEWPORT_SHAPE[Y]):
                 pygame.draw.rect(
                     self.screen,
-                    self.game.grid[x, y],
-                    self.shrink(self.grid_to_px(x, y, offset),self.game.grid[x, y].short_sides)
+                    COLORS[self.game.grid[x, y]],
+                    self.grid_to_px(x, y, offset)
                 )
 
         # draw player

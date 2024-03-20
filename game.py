@@ -49,10 +49,3 @@ class Block():
     def __getattr__(self, name):
         if name == 'type':
             return self.identity
-
-
-# wrapper class to track player position
-class Player():
-    def __init__(self, pos):
-        self.pos = pos
-        self.gripping = ZERO
