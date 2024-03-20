@@ -43,7 +43,7 @@ UP = np.array([0, 1])
 DOWN = np.array([0, -1])
 ZERO = np.array([0, 0])
 
-# this is sugar for using a vector to index a matrix
+# this is sugar for using a numpy vector to index a matrix
 _ = tuple
 # less cancerous sugar
 X = 0
