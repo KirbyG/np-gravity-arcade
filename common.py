@@ -3,20 +3,34 @@ import numpy as np
 # Definition of 3SAT
 VARS_PER_CLAUSE = 3
 
+# color codes
+LADDER = 0
+HARD = 1
+BREAKABLE = 2
+PRINCESS = 3
+SUPPORT = 4
+AIR = 5
+SLAB = 6
+BORDER = 7
+TIP = 8
+GRIPPED = 9
+BACKGROUND = 10
+PLAYER = 11
+
 # colors named based on in-game functionality
 COLORS = {
-    'ladder': (0, 0, 255),
-    'hard': (210, 180, 140),
-    'breakable': (128, 128, 128),
-    'princess': (250, 20, 200),
-    'support': (255, 255, 255),
-    'air': (255, 255, 255),
-    'slab': (128, 128, 128),
-    'border': (0, 200, 0),
-    'tip':  (128, 128, 128),
-    'gripped': (50, 50, 50),
-    'background': (0, 0, 0),
-    'player': (255, 0, 0),
+    LADDER: (0, 0, 255),
+    HARD: (210, 180, 140),
+    BREAKABLE: (128, 128, 128),
+    PRINCESS: (250, 20, 200),
+    SUPPORT: (255, 255, 255),
+    AIR: (255, 255, 255),
+    SLAB: (128, 128, 128),
+    BORDER: (0, 200, 0),
+    TIP:  (128, 128, 128),
+    GRIPPED: (50, 50, 50),
+    BACKGROUND: (0, 0, 0),
+    PLAYER: (255, 0, 0),
 }
 
 # purely mathematical helper function mapping -R -> -1, R -> 1
@@ -29,7 +43,7 @@ UP = np.array([0, 1])
 DOWN = np.array([0, -1])
 ZERO = np.array([0, 0])
 
-# this is sugar
+# this is sugar for using a vector to index a matrix
 _ = tuple
 # less cancerous sugar
 X = 0

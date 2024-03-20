@@ -50,8 +50,6 @@ class Block():
         if name == 'type':
             return self.identity
 
-    def __repr__(self):
-        return self.type.upper()[0]
 
 # wrapper class to track player position
 class Player():

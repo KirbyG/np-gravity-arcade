@@ -1,5 +1,7 @@
 import pygame
-from common import LEFT, RIGHT, UP, DOWN, X, Y, COLORS, ZERO
+from common import LEFT, RIGHT, UP, DOWN, ZERO
+from common import X, Y
+from common import COLORS, AIR, PLAYER
 import numpy as np
 
 v_min = np.vectorize(min)
@@ -27,12 +29,15 @@ class Artist:
         ]) - BUFFER_PX
 
         # blocks are at least 15px, but can be larger when the grid is small
-        self.BLOCK_PX = max(15, np.min(SCREEN_PX / game.grid.shape))
+        self.BLOCK_PX = max(15, int(np.min(SCREEN_PX / game.grid.shape)))
 
         # limit the max window dimension to fit on the display, and ensure it multiplies the block dimension
+        print(self.BLOCK_PX)
+        print(SCREEN_PX - (SCREEN_PX % self.BLOCK_PX))
+        print(game.grid.shape * self.BLOCK_PX)
         self.WINDOW_PX = v_min(
             SCREEN_PX - (SCREEN_PX % self.BLOCK_PX),
-            self.BLOCK_PX * game.grid.shape
+            self.BLOCK_PX * np.array(game.grid.shape)
         )
 
         # the number of blocks that will fit in a window at a time
@@ -73,13 +78,13 @@ class Artist:
         # compute the offset vector
         offset = v_min(
             self.game.grid.shape - self.VIEWPORT_SHAPE,
-            v_max(ZERO, self.game.player.pos - self.CENTER)
+            v_max(ZERO, self.game.player - self.CENTER)
         )
 
         # set the background to black
         pygame.draw.rect(
             self.screen,
-            COLORS.air,
+            COLORS[AIR],
             [0, 0, self.WINDOW_PX[X], self.WINDOW_PX[Y]])
 
         # draw the subgrid
@@ -87,15 +92,15 @@ class Artist:
             for y in range(offset[Y], offset[Y] + self.VIEWPORT_SHAPE[Y]):
                 pygame.draw.rect(
                     self.screen,
-                    self.game.grid[x, y].color,
+                    self.game.grid[x, y],
                     self.shrink(self.grid_to_px(x, y, offset),self.game.grid[x, y].short_sides)
                 )
 
         # draw player
         pygame.draw.rect(
             self.screen,
-            COLORS.player,
-            self.grid_to_px(self.game.player.pos[X], self.game.player.pos[Y], offset))
+            COLORS[PLAYER],
+            self.grid_to_px(self.game.player[X], self.game.player[Y], offset))
 
         # display the result
         pygame.display.update()
