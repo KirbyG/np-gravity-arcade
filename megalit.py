@@ -1,5 +1,4 @@
 # this file contains the Megalit class and its Slab helper class
-
 from game import Game, Block
 from common import LEFT, RIGHT, UP, DOWN, ZERO, sign, X, Y
 import numpy as np
