@@ -7,7 +7,6 @@ import numpy as np
 
 # we use slab to refer to a 1 by x or x by 1 Megalit gameplay object
 
-
 class Megalit(Game):
     def __init__(self, puzzle):
         super().__init__(puzzle)
