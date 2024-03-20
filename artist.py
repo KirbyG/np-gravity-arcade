@@ -32,9 +32,6 @@ class Artist:
         self.BLOCK_PX = max(15, int(np.min(SCREEN_PX / game.grid.shape)))
 
         # limit the max window dimension to fit on the display, and ensure it multiplies the block dimension
-        print(self.BLOCK_PX)
-        print(SCREEN_PX - (SCREEN_PX % self.BLOCK_PX))
-        print(game.grid.shape * self.BLOCK_PX)
         self.WINDOW_PX = v_min(
             SCREEN_PX - (SCREEN_PX % self.BLOCK_PX),
             self.BLOCK_PX * np.array(game.grid.shape)
@@ -81,7 +78,7 @@ class Artist:
             v_max(ZERO, self.game.player - self.CENTER)
         )
 
-        # set the background to black
+        # set the background to white
         pygame.draw.rect(
             self.screen,
             COLORS[AIR],

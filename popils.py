@@ -55,7 +55,7 @@ class Popils(Game):
 
         np.put(
             self.grid[:,2],#along the x-axis, row 2
-            np.arange(1, self.grid.shape[X] - 3),#from the left to the right-3
+            np.arange(1, self.grid.shape[X] - 3, 2),#from the left to the right-3
             [BREAKABLE]
         )
 
@@ -110,18 +110,18 @@ class Popils(Game):
     # SOLVE and its helpers compute the popils-specific solving move sequence
     # for the given 3SAT instance
     def solve(self):
-        sol = np.empty(0)
+        sol = np.empty((0,2), dtype='int')
         if self.puzzle.solution:
             # make variable assignments
             for truthiness in self.puzzle.solution:
                 if truthiness == 1:
-                    sol = np.append(sol, UP)
-                sol = np.concatenate([sol, np.tile(RIGHT, 2)])
+                    sol = np.vstack([sol, UP])
+                sol = np.vstack([sol, np.tile(RIGHT, (2,1))])
 
             # traverse level
             for clause in range(self.puzzle.num_clauses):
                 # climb ladder to enter clause
-                sol = np.concatenate([sol, np.tile(UP, 3)])
+                sol = np.vstack([sol, np.tile(UP, (3,1))])
 
                 # find nearest viable ladder
                 satisfied = self.puzzle.satisfied_vars(
@@ -130,25 +130,28 @@ class Popils(Game):
                 lateral_blocks = 2 * (self.puzzle.num_vars + 1 - closest)
 
                 # move to nearest viable ladder
-                sol = np.concatenate([sol, np.tile(LEFT, lateral_blocks)])
+                sol = np.vstack([sol, np.tile(LEFT, (lateral_blocks,1))])
 
                 # climb to next clause
-                sol = np.concatenate([sol, np.tile(UP, 2)])
+                sol = np.vstack([sol, np.tile(UP, (2,1))])
 
                 # go back to the main ladder
-                sol = np.concatenate([sol, np.tile(RIGHT, lateral_blocks)])
+                sol = np.vstack([sol, np.tile(RIGHT, (lateral_blocks,1))])
 
                 # get in position to traverse the next clause
-                sol = np.append(sol, UP)
+                sol = np.vstack([sol, UP])
 
             # climb to princess!
-            sol = np.concatenate([sol, np.tile(UP, 3)])
+            sol = np.vstack([sol, np.tile(UP, (3,1))])
         else:
             print("INFO | Not running Popils solver because 3SAT was not solved.")
         return sol
 
     # SOLVE HELPER
     def update(self, movement):
+        print(self.player)
+        print(movement)
+        print(self.player+movement)
         target = self.grid[_(self.player + movement)]
 
         if all(movement == UP):
@@ -156,10 +159,9 @@ class Popils(Game):
                 airspace = np.arange(self.player[Y] + 1, self.grid.shape[Y])
                 np.put(
                     self.grid[self.player[X],:],#along the y-axis
-                    airspace - 1,#to top
-                    self.grid[self.player[X],airspace[0]:airspace[-1]+1]
+                    airspace,#to top
+                    self.grid[self.player[X],airspace[1]:airspace[-1]+1]
                 )
-                self.grid[_(self.player)] = SUPPORT
             elif self.grid[_(self.player)] == LADDER and (target != HARD):
                 self.move(UP)
         elif target != HARD:

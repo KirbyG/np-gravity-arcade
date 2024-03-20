@@ -79,10 +79,10 @@ while not game.complete:
                 game.update(ZERO)
 
     # autosolver mode
-    if args.solver and game.sol:
-        game.update(game.sol[game.solution_step])
+    if args.solver:
+        game.update(game.solution[game.solution_step])
         game.solution_step += 1
-        if game.solution_step == len(game.sol):
+        if game.solution_step == len(game.solution):
             game.complete = True
 
     # iterate game display with capped framerate
