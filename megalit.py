@@ -3,7 +3,6 @@ from game import Game, Block
 from common import LEFT, RIGHT, UP, DOWN, ZERO, sign, X, Y
 import numpy as np
 
-
 # Megalit was developed by the ASCII Corporation for the Gameboy
 
 # we use slab to refer to a 1 by x or x by 1 Megalit gameplay object
