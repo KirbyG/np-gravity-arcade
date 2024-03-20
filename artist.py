@@ -21,7 +21,7 @@ class Artist:
         BUFFER_PX = 280
 
         # how much display space we have to work with
-        SCREEN_PX = np.arr([
+        SCREEN_PX = np.array([
             pygame.display.Info().current_w,
             pygame.display.Info().current_h
         ]) - BUFFER_PX

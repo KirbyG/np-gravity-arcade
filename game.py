@@ -53,7 +53,6 @@ class Block():
     def __repr__(self):
         return self.type.upper()[0]
 
-
 # wrapper class to track player position
 class Player():
     def __init__(self, pos):

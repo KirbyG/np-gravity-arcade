@@ -23,11 +23,11 @@ COLORS = {
 def sign(num):
     return 0 if not num else int(abs(num) / num)
 
-LEFT = np.arr([-1, 0])
-RIGHT = np.arr([1, 0])
-UP = np.arr([0, 1])
-DOWN = np.ar(0[, -1])
-ZERO = np.arr([0, 0])
+LEFT = np.array([-1, 0])
+RIGHT = np.array([1, 0])
+UP = np.array([0, 1])
+DOWN = np.array([0, -1])
+ZERO = np.array([0, 0])
 
 # this is sugar
 _ = tuple

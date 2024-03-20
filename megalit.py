@@ -1,6 +1,6 @@
 # this file contains the Megalit class and its Slab helper class
 
-from game import Game, Block, Player, Grid
+from game import Game, Block, Player
 from common import LEFT, RIGHT, UP, DOWN, ZERO, sign, X, Y
 import numpy as np
 
@@ -51,17 +51,17 @@ class Megalit(Game):
     def build_var_tower(self, var):
         # var setter area
         x = 6 + 32 * var
-        self.build_table(np.arr([x, 1]), width=5)
-        self.slabs.append(Slab(self.grid, np.arr([x, 4]), RIGHT))
-        self.slabs.append(Slab(self.grid, np.arr([x, 5]), 3 * UP))
+        self.build_table(np.array([x, 1]), width=5)
+        self.slabs.append(Slab(self.grid, np.array([x, 4]), RIGHT))
+        self.slabs.append(Slab(self.grid, np.array([x, 5]), 3 * UP))
 
         # top of level filler
         for y in range(self.grid.shape.Y - 6, self.grid.shape.Y - 1):
-            self.slabs.append(Slab(self.grid, np.arr([x - 4, y]), 9 * RIGHT))
+            self.slabs.append(Slab(self.grid, np.array([x - 4, y]), 9 * RIGHT))
 
         # actual tower
         for clause in range(self.puzzle.num_clauses):
-            self.build_gadget(np.arr([x, 8 + 13 * clause]),
+            self.build_gadget(np.array([x, 8 + 13 * clause]),
                               self.magic(self.puzzle.expanded_form[clause][var]))
 
     def build_climbing_story(self, bottom_center, crunch=False):
@@ -87,13 +87,14 @@ class Megalit(Game):
     # refer to Megalit.pdf for details
     def reduce(self):
         # initialize to air blocks
-        self.grid = np.fromfunction(
-            lambda: Block('air'),
-            (
-                (self.puzzle.num_vars - 1) * 23 + self.puzzle.num_vars * 9,
-                2 + 7 + 13 * self.puzzle.num_clauses + 5
-            )
-        )
+        # self.grid = np.fromfunction(
+        #     lambda: Block('air'),
+        #     (
+        #         (self.puzzle.num_vars - 1) * 23 + self.puzzle.num_vars * 9,
+        #         2 + 7 + 13 * self.puzzle.num_clauses + 5
+        #     )
+        # )
+        self.grid = np.array([[Block('air') for y in range(2 + 7 + 13 * self.puzzle.num_clauses + 5)] for x in range((self.puzzle.num_vars - 1) * 23 + self.puzzle.num_vars * 9)], type='object')
 
         # bottom and top
         for x in range(self.grid.shape.X):
@@ -112,14 +113,14 @@ class Megalit(Game):
 
         # climbing towers
         for var in range(self.puzzle.num_vars - 1):
-            self.build_climbing_tower(np.arr([22 + 32 * var, 1]))
+            self.build_climbing_tower(np.array([22 + 32 * var, 1]))
 
         # var towers
         for var in range(self.puzzle.num_vars):
             self.build_var_tower(var)
 
         # player start position
-        self.player = Player(np.arr([1, 1]))
+        self.player = Player(np.array([1, 1]))
 
     # SOLVE - automatically generate the solution to the level
 
