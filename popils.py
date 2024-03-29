@@ -6,10 +6,10 @@ from common import _
 import numpy as np
 
 # popils-specific gadgets
-SUB_GADGET_NEGATED = [LADDER, LADDER, SUPPORT, LADDER]
-SUB_GADGET_ABSENT = [LADDER, SUPPORT, LADDER, SUPPORT]
-SUB_GADGET_PRESENT = [SUPPORT, LADDER, LADDER, SUPPORT]
-SUB_GADGETS = [SUB_GADGET_NEGATED, SUB_GADGET_ABSENT, SUB_GADGET_PRESENT]
+VAR_NEGATED = [LADDER, LADDER, SUPPORT, LADDER]
+VAR_ABSENT = [LADDER, SUPPORT, LADDER, SUPPORT]
+VAR_PRESENT = [SUPPORT, LADDER, LADDER, SUPPORT]
+VAR_GADGETS = [VAR_NEGATED, VAR_ABSENT, VAR_PRESENT]
 
 # popils-specific gadget sizes
 SUB_GADGET_HEIGHT = 4
@@ -22,11 +22,11 @@ class Popils(Game):
         self.player = np.array([1, 1])
         super().__init__(puzzle)
 
-    ############################################################################
+################################################################################
     # REDUCE and its helpers build a popils level expressing the given 3SAT
     # puzzle
     def reduce(self):
-        # set dimensions of grid and initialize
+        # Set dimensions of grid and initialize
         self.grid = np.full(
             (
                 3 + (2 * self.puzzle.num_vars),
@@ -35,80 +35,47 @@ class Popils(Game):
             HARD
         )
 
-        # build static level features
-        self.build_frame()
+        ### Build static level features
+        # bottom of the level: starting zone used for setting variables
+        self.grid[np.arange(1, self.grid.shape[X] - 2), 1] = SUPPORT #walkway
+        self.grid[self.grid.shape[X] - 2, [1, 2]] = LADDER #ascend to first clause
+        self.grid[np.arange(1, self.grid.shape[X] - 3, 2), 2] = BREAKABLE #var setters
 
-        # Place gadgets to construct puzzle
-        self.build_clauses()
-
-    # REDUCE HELPER: create static areas of the grid that depend only on
-    # instance size
-    def build_frame(self):
-        # bottom level, used for setting variables
-        np.put(
-            self.grid[:,1], #along the x axis, row 1
-            np.arange(1, self.grid.shape[X] - 2), #from the left to the right-2
-            [SUPPORT] #fill with support blocks
-        )
-
-        self.grid[self.grid.shape[X] - 2, 1] = LADDER
-
-        np.put(
-            self.grid[:,2],#along the x-axis, row 2
-            np.arange(1, self.grid.shape[X] - 3, 2),#from the left to the right-3
-            [BREAKABLE]
-        )
-
-        self.grid[self.grid.shape[X] - 2, 2] = LADDER
-
-        # Ending zone
+        # win condition / princess holding cell
         self.grid[self.grid.shape[X] - 2, self.grid.shape[Y] - 2] = PRINCESS
-
-        # Stop princess from walking
         self.grid[self.grid.shape[X] - 2, self.grid.shape[Y] - 3] = BREAKABLE
 
-    # REDUCE HELPER
-    def build_clauses(self):
-        bottom_y = 3
-
+        ### Place gadgets to construct puzzle
+        bottom = 3
         for clause in range(self.puzzle.num_clauses):
-            # Fill in gadget region for each variable for current tuple
-            self.place_gadget(self.puzzle.expanded_form[clause], bottom_y)
-            bottom_y += GADGET_HEIGHT
+            self.construct_clause(self.puzzle.expanded_form[clause], bottom)
+            bottom += GADGET_HEIGHT
 
-    # REDUCE HELPER
-    def place_gadget(self, variable_states, bottom_y):
+    # REDUCE HELPER: 
+    def construct_clause(self, var_settings, bottom):
         # Create transition to next zone
-        self.grid[self.grid.shape[X] - 2, bottom_y] = LADDER
-        self.grid[self.grid.shape[X] - 2, bottom_y + 1] = SUPPORT
-
-        # bottom_y + 2 is already correctly set to 'hard'
-        np.put(
-            self.grid[self.grid.shape[X] - 2,:],
-            np.arange(bottom_y + 3, bottom_y + 6),
-            [LADDER]
-        )
+        self.grid[self.grid.shape[X] - 2, bottom] = LADDER
+        self.grid[self.grid.shape[X] - 2, bottom + 1] = SUPPORT
+        # bottom + 2 is already correctly set to 'hard'
+        self.grid[self.grid.shape[X] - 2, np.arange(bottom + 3, bottom + 6)] = LADDER
 
         # Carve out walkable area, skipping gadget columns
-        for x in range(2, self.grid.shape[X] - 2, 2):
-            self.grid[x, bottom_y + 1] = SUPPORT
-            self.grid[x, bottom_y + 3] = SUPPORT
-            self.grid[x, bottom_y + 4] = SUPPORT
+        self.grid[np.ix_(
+            np.arange(2, self.grid.shape[X] - 2, 2),
+            np.array([1, 3, 4]) + bottom
+        )] = SUPPORT
 
-        # Place 'ladder's according to gadget structure
-        for var_index in range(len(variable_states)):
-            self.place_sub_gadget(
-                variable_states[var_index], bottom_y + 1, 2 * var_index + 1)
+        # Place columns of ladders and support blocks representing variable encoding in
+        # this clause
+        for var_index in range(len(var_settings)):
+            var_state = var_settings[var_index]
+            self.grid[
+                2 * var_index + 1, #every other column
+                bottom + 1 + np.arange(SUB_GADGET_HEIGHT)
+            ] = VAR_GADGETS[var_state + 1]
 
-    # REDUCE HELPER: place a part of a gadget corresponding to the state of
-    #1 variable
-    def place_sub_gadget(self, var_state, bottom_y, x):
-        for d_y in range(SUB_GADGET_HEIGHT):
-            self.grid[x, bottom_y + d_y] = SUB_GADGETS[var_state + 1][d_y]
-
-    ############################################################################
-    # SOLVE and its helpers compute the popils-specific solving move sequence
-    # for the given 3SAT instance
+########################################################################################
+    # SOLVE computes the popils-specific solving move sequence for the given 3SAT puzzle
     def solve(self):
         sol = np.empty((0,2), dtype='int')
         if self.puzzle.solution:
