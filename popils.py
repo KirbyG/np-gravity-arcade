@@ -22,9 +22,9 @@ class Popils(Game):
         self.player = np.array([1, 1])
         super().__init__(puzzle)
 
-################################################################################
-    # REDUCE and its helpers build a popils level expressing the given 3SAT
-    # puzzle
+########################################################################################
+
+    # REDUCE and its helpers build a popils level expressing the given 3SAT puzzle
     def reduce(self):
         # Set dimensions of grid and initialize
         self.grid = np.full(
@@ -35,8 +35,8 @@ class Popils(Game):
             HARD
         )
 
-        ### Build static level features
-        # bottom of the level: starting zone used for setting variables
+        # Build static level features bottom of the level: starting zone used for
+        # setting variables
         self.grid[np.arange(1, self.grid.shape[X] - 2), 1] = SUPPORT #walkway
         self.grid[self.grid.shape[X] - 2, [1, 2]] = LADDER #ascend to first clause
         self.grid[np.arange(1, self.grid.shape[X] - 3, 2), 2] = BREAKABLE #var setters
@@ -45,7 +45,7 @@ class Popils(Game):
         self.grid[self.grid.shape[X] - 2, self.grid.shape[Y] - 2] = PRINCESS
         self.grid[self.grid.shape[X] - 2, self.grid.shape[Y] - 3] = BREAKABLE
 
-        ### Place gadgets to construct puzzle
+        # Place gadgets to construct puzzle
         bottom = 3
         for clause in range(self.puzzle.num_clauses):
             self.construct_clause(self.puzzle.expanded_form[clause], bottom)
@@ -75,6 +75,7 @@ class Popils(Game):
             ] = VAR_GADGETS[var_state + 1]
 
 ########################################################################################
+    
     # SOLVE computes the popils-specific solving move sequence for the given 3SAT puzzle
     def solve(self):
         sol = np.empty((0,2), dtype='int')
@@ -114,11 +115,11 @@ class Popils(Game):
             print("INFO | Not running Popils solver because 3SAT was not solved.")
         return sol
 
-    # SOLVE HELPER
+########################################################################################
+
+    # UPDATE changes the gamestate given a movement command, either from user input or
+    # the precomputed solving move sequence
     def update(self, movement):
-        print(self.player)
-        print(movement)
-        print(self.player+movement)
         target = self.grid[_(self.player + movement)]
 
         if all(movement == UP):
@@ -139,9 +140,11 @@ class Popils(Game):
             ):
                 self.move(DOWN)
 
-    # SOLVE HELPER
+    # UPDATE HELPER
     def move(self, vector):
         self.player += vector
 
         if self.grid[_(self.player)] == PRINCESS:
             self.complete = True
+
+########################################################################################

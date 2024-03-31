@@ -10,7 +10,7 @@ BREAKABLE = 2
 PRINCESS = 3
 SUPPORT = 4
 AIR = 5
-SLAB = 6
+ROCK = 6
 BORDER = 7
 TIP = 8
 GRIPPED = 9
@@ -25,7 +25,7 @@ COLORS = {
     PRINCESS: (250, 20, 200),
     SUPPORT: (255, 255, 255),
     AIR: (255, 255, 255),
-    SLAB: (128, 128, 128),
+    ROCK: (128, 128, 128),
     BORDER: (0, 200, 0),
     TIP:  (128, 128, 128),
     GRIPPED: (50, 50, 50),
