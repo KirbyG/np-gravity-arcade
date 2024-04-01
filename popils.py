@@ -1,14 +1,14 @@
 from game import Game
 from common import LEFT, DOWN, UP, RIGHT
 from common import X, Y
-from common import LADDER, SUPPORT, HARD, BREAKABLE, PRINCESS
+from common import AIR, LADDER, HARD, BREAKABLE, PRINCESS
 from common import _
 import numpy as np
 
 # popils-specific gadgets
-VAR_NEGATED = [LADDER, LADDER, SUPPORT, LADDER]
-VAR_ABSENT = [LADDER, SUPPORT, LADDER, SUPPORT]
-VAR_PRESENT = [SUPPORT, LADDER, LADDER, SUPPORT]
+VAR_NEGATED = [LADDER, LADDER, AIR, LADDER]
+VAR_ABSENT = [LADDER, AIR, LADDER, AIR]
+VAR_PRESENT = [AIR, LADDER, LADDER, AIR]
 VAR_GADGETS = [VAR_NEGATED, VAR_ABSENT, VAR_PRESENT]
 
 # popils-specific gadget sizes
@@ -37,7 +37,7 @@ class Popils(Game):
 
         # Build static level features bottom of the level: starting zone used for
         # setting variables
-        self.grid[np.arange(1, self.grid.shape[X] - 2), 1] = SUPPORT #walkway
+        self.grid[np.arange(1, self.grid.shape[X] - 2), 1] = AIR #walkway
         self.grid[self.grid.shape[X] - 2, [1, 2]] = LADDER #ascend to first clause
         self.grid[np.arange(1, self.grid.shape[X] - 3, 2), 2] = BREAKABLE #var setters
 
@@ -55,7 +55,7 @@ class Popils(Game):
     def construct_clause(self, var_settings, bottom):
         # Create transition to next zone
         self.grid[self.grid.shape[X] - 2, bottom] = LADDER
-        self.grid[self.grid.shape[X] - 2, bottom + 1] = SUPPORT
+        self.grid[self.grid.shape[X] - 2, bottom + 1] = AIR
         # bottom + 2 is already correctly set to 'hard'
         self.grid[self.grid.shape[X] - 2, np.arange(bottom + 3, bottom + 6)] = LADDER
 
@@ -63,7 +63,7 @@ class Popils(Game):
         self.grid[np.ix_(
             np.arange(2, self.grid.shape[X] - 2, 2),
             np.array([1, 3, 4]) + bottom
-        )] = SUPPORT
+        )] = AIR
 
         # Place columns of ladders and support blocks representing variable encoding in
         # this clause
@@ -135,8 +135,8 @@ class Popils(Game):
         elif target != HARD:
             self.move(movement)
             while (
-                self.grid[_(self.player + DOWN)] == SUPPORT and
-                self.grid[_(self.player)] == SUPPORT
+                self.grid[_(self.player + DOWN)] == AIR and
+                self.grid[_(self.player)] == AIR
             ):
                 self.move(DOWN)
 

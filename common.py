@@ -3,35 +3,43 @@ import numpy as np
 # Definition of 3SAT
 VARS_PER_CLAUSE = 3
 
-# color codes
-LADDER = 0
-HARD = 1
-BREAKABLE = 2
-PRINCESS = 3
-SUPPORT = 4
-AIR = 5
-ROCK = 6
-BORDER = 7
-TIP = 8
-GRIPPED = 9
-BACKGROUND = 10
-PLAYER = 11
+# BLOCK TYPES
+COMMON = 0 * 10
+POPILS = 1 * 10
+MEGALIT = 2 * 10
 
-# colors named based on in-game functionality
+PLAYER = COMMON + 0
+AIR = COMMON + 1
+
+LADDER = POPILS + 0
+HARD = POPILS + 1
+BREAKABLE = POPILS + 2
+PRINCESS = POPILS + 3
+
+BORDER = MEGALIT + 0
+ROCKBOTTOM = MEGALIT + 1
+ROCKTOP = MEGALIT + 2
+ROCKLEFT = MEGALIT + 3
+ROCKRIGHT = MEGALIT + 4
+ROCKCOLUMN = MEGALIT + 5
+ROCKROW = MEGALIT + 6
+ROCKPOINT = MEGALIT + 7
+
+JUGS = [ROCKBOTTOM, ROCKLEFT, ROCKRIGHT]
+
+ROCKS = [ROCKBOTTOM, ROCKTOP, ROCKLEFT, ROCKRIGHT, ROCKCOLUMN, ROCKROW]
+
+# COLORS for each block. ROCK types differ in shape to render shapes of slabs
 COLORS = {
+    PLAYER: (255, 0, 0),
+    AIR: (255, 255, 255),
     LADDER: (0, 0, 255),
     HARD: (210, 180, 140),
     BREAKABLE: (128, 128, 128),
     PRINCESS: (250, 20, 200),
-    SUPPORT: (255, 255, 255),
-    AIR: (255, 255, 255),
-    ROCK: (128, 128, 128),
     BORDER: (0, 200, 0),
-    TIP:  (128, 128, 128),
-    GRIPPED: (50, 50, 50),
-    BACKGROUND: (0, 0, 0),
-    PLAYER: (255, 0, 0),
 }
+COLORS.update({ROCK: (50, 50, 50)} for ROCK in ROCKS)
 
 # purely mathematical helper function mapping -R -> -1, R -> 1
 def sign(num):

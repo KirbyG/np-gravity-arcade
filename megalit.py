@@ -1,14 +1,17 @@
 # this file contains the Megalit class and its Slab helper class
-from game import Game, Block
+from game import Game
 from common import LEFT, RIGHT, UP, DOWN, ZERO
-from common import sign
+from common import _
 from common import X, Y
-from common import AIR, BORDER, TIP, GRIPPED, ROCK
+from common import AIR, BORDER
+from common import JUGS, ROCKS
+from common import ROCKBOTTOM, ROCKTOP, ROCKLEFT, ROCKRIGHT
+from common import ROCKPOINT, ROCKCOLUMN, ROCKROW
 import numpy as np
 
 # each grid position needs to know what material it is and to which slab, if any, it
 # belongs
-TYPE = 0
+BLOCK = 0
 SLAB = 1
 
 # Megalit was developed by the ASCII Corporation for the Gameboy
@@ -19,7 +22,9 @@ class Megalit(Game):
     def __init__(self, puzzle):
         super().__init__(puzzle)
         self.hover = 0
-        self.hysteresis = LEFT
+        self.facing = LEFT # track which way we have just moved for intuitive grabs
+        self.grip = ZERO # ZERO for no grip, otherwise LEFT or RIGHT
+        self.unsettled_slabs = 0
 
 ########################################################################################
 
@@ -32,22 +37,14 @@ class Megalit(Game):
                 (self.puzzle.num_vars - 1) * 23 + self.puzzle.num_vars * 9,
                 2 + 7 + 13 * self.puzzle.num_clauses + 5
             ),
-            [AIR, None]
+            AIR
         )
-
-        # unlike in Popils, blocks in Megalit have local spatial relationships
-        # 0th axis: slabs
-        # 1st axis: ends of slabs
-        # 2nd axis: cartesian coordinates in the game grid
-        self.slabs = np.empty((0,2,2), dtype='int')
 
         # bottom and top
         self.grid[np.arange(self.grid.shape[X]), [0, self.grid.shape[Y] - 1]] = BORDER
 
         # sides
         self.grid[[0, self.grid.shape[X]],:] = BORDER
-
-        # container for all slabs in the level
 
         # do the actual reduction
 
@@ -62,16 +59,27 @@ class Megalit(Game):
         # player start position
         self.player = np.array([1, 1])
 
+    def add_vertical_slab(self, origin, length):
+        self.grid[_(origin)] = ROCKBOTTOM
+        self.grid[origin[X], np.arange(1, length - 1) + origin[Y]]
+        self.grid[_(origin + UP * length)] = ROCKTOP
+    
+    def add_horizontal_slab(self, origin, length):
+        self.grid[_(origin)] = ROCKLEFT
+        self.grid[np.arange(1, length - 1) + origin[X], origin[Y]]
+        self.grid[_(origin + RIGHT * length)] = ROCKRIGHT
+
+    # origin needs to be lower left
     def add_slab(self, origin, displacement):
-        tip = origin + displacement
-        self.grid[
-            np.arange(0, displacement[X], np.sign(displacement[X])) + origin[X],
-            np.arange(0, displacement[Y], np.sign(displacement[Y])) + origin[Y]
-        ] = [SLAB, len(self.slabs)]
-        self.slabs = np.concatenate((
-            self.slabs,
-            [[origin, tip]]
-        ))
+        if displacement[X] + displacement[Y] == 1:
+            self.grid[_(origin)] = ROCKPOINT
+        else:
+            if displacement[X] == 0:
+                self.add_vertical_slab(origin, displacement[Y])
+            else:
+                self.add_horizontal_slab(origin, displacement[X])
+        if origin[Y] > 1:
+            self.unsettled_slabs += 1
 
     def build_platform(self, bottom_left, width, height):
         self.add_slab(bottom_left, width * RIGHT)
@@ -331,31 +339,67 @@ class Megalit(Game):
 
     # UPDATE - support gameplay
     def update(self, force):
-        if not force:  # we are changing grip
-            self.change_grip()
-        elif self.player.gripping:  # we are trying to move a slab
+        if force == ZERO:  # we are changing grip
+            target = self.grid[_(self.player + self.facing)] # index of target block
+            if self.grip == ZERO: # we are trying to grab something
+                if target in JUGS:
+                    self.grip = self.hysteresis
+            else: # we are just releasing a slab
+                self.grip = ZERO
+        elif self.grip:  # we are trying to move a slab
             if force[X]:  # we can ignore attempts to move up or down with a slab
-                # ensure we have solid ground to move onto
-                if self.grid[self.player.pos + force + DOWN] != AIR and not (self.player.gripping == -1 * force and self.grid[self.player.pos + force] != AIR):
-                    slab = self.grid[self.player.pos + self.player.gripping].slab
-                    moved, fell = slab.slide(force)
+                # we need solid ground to move onto, and can't back into a wall
+                if (self.grid[_(self.player + force + DOWN)] != AIR and not
+                    (self.grip == -force and self.grid[_(self.player + force)] != AIR)):
+                    
+                    moved = False
+                    fell = False
+                    # try to move a slab
+                    target = self.grid[_(self.player + self.grip)]
+                    if target == ROCKPOINT: # 1x1 slab movement logic
+                        pass
+                    elif target == ROCKBOTTOM: # vertical slab movement logic
+                        top = target + UP
+                        while (self.grid[_(top)] == ROCKCOLUMN):
+                            top += UP
+                        slab = np.ix_(target[X], np.arange(target[Y], top[Y] + 1))
+                        dest = slab + force
+                        if all(self.grid[dest] == AIR):
+                            moved = True
+                            self.grid[dest] = self.grid[slab]
+                            self.grid[slab] = [AIR]
 
-                    if moved:  # the slab was able to move, so the player should as well
-                        self.player.pos += force
+                            # now, find out how far the slab has to fall
+                            airgap = 0
+                            while (self.grid[_(dest[0] + DOWN * (1 + airgap))] == AIR):
+                                airgap += 1
+                            if airgap > 0:
+                                fell = True
+                                cp = np.copy(self.grid[dest])
+                                self.grid[dest] = [AIR]
+                                self.grid[dest + DOWN * airgap] = cp
+                    else: # horizontal slab movement logic
+                        far = target + self.grip
+                        while (self.grid[_(far)] == ROCKROW):
+                            far += self.grip
+                        if self.grid[_(far + self.grip)] == AIR:
+                            moved = True
+                            cp = np.copy()
+
+                    if moved: # the slab was able to move, so the player should as well
+                        self.player += force
 
                         # end the game if a slab has fallen on the player
-                        if self.grid[self.player.pos] in (SLAB, TIP):
+                        if self.grid[_(self.player)] in ROCKS:
+                            self.complete = True
+
+                        # end the game if all slabs are on the ground
+                        if self.unsettled_slabs == 0:
                             self.complete = True
 
                         if fell:  # our grip has been broken
-                            self.player.gripping = ZERO
-                            for block in slab.blocks:
-                                if block == GRIPPED:
-                                    block = TIP
+                            self.grip = ZERO
 
-                        # end the game if all slabs are on the ground
-                        if all([slab.grounded() for slab in self.slabs]):
-                            self.complete = True
 
         else:  # we are just trying to move
             if force == DOWN:
@@ -367,119 +411,30 @@ class Megalit(Game):
 
 
     def player_fall(self):
-        while self.grid[self.player.pos + DOWN] == AIR:
-            self.player.pos += DOWN
+        while self.grid[_(self.player + DOWN)] == AIR:
+            self.player += DOWN
 
     def jump(self):
         # no double jumps ):
-        if self.grid[self.player.pos + DOWN] != AIR:
-            jump_height = 0
-            max_jump_height = 3
+        if self.grid[_(self.player + DOWN)] != AIR:
+            delta_feet = 0
+            vertical = 3
             # stop when we hit a ceiling or max jump height
-            while self.grid[self.player.pos + UP] == AIR and jump_height < max_jump_height:
-                self.player.pos += UP
-                jump_height += 1
+            while self.grid[_(self.player + UP)] == AIR and delta_feet < vertical:
+                self.player += UP
+                delta_feet += 1
             self.hover = 2
-
-    # user has pressed the space bar to grip or release a slab
-    def change_grip(self):
-        if self.player.gripping:
-            self.grid[self.player.pos + self.player.gripping] = TIP
-            self.player.gripping = ZERO
-        else:
-            if self.grid[self.player.pos + self.hysteresis] == TIP:
-                self.player.gripping = self.hysteresis
-                self.grid[self.player.pos +
-                          self.player.gripping] = GRIPPED
-            elif self.grid[self.player.pos + -1 * self.hysteresis] == TIP:
-                self.player.gripping = -1 * self.hysteresis
-                self.grid[self.player.pos +
-                          self.player.gripping] = GRIPPED
 
     # move left or right unless blocked by a slab or level edge
     def walk(self, force):
         self.hysteresis = force
-        if self.grid[self.player.pos + force] == AIR:
-            self.player.pos += force
+        if self.grid[_(self.player + force)] == AIR:
+            self.player += force
             self.hover -= 1
             if self.hover <= 0:
                 self.player_fall()
                 self.hover = 0
 
-    
 
-# keep track of Megalit slabs and support their motion and collapse mechanics
-class Slab:
-    # create a slab with the specified position and add it to the grid
-    def __init__(self, grid, origin, extent):
-        step = extent.normalize()
-        self.world = grid
-        self.blocks = []
-        self.positions = []
-        max_offset = int(extent.magnitude) - 1
-        for offset in range(max_offset + 1):
-            position = origin + (offset * step)
-            grid[position] = Block(SLAB, self, short_sides=[
-                                   Vector(step.y, step.x), -1 * Vector(step.y, step.x)])
-            if offset == 0:
-                grid[position] = TIP
-                grid[position].short_sides.append(-1 * step)
-            if offset == max_offset:
-                grid[position] = TIP
-                grid[position].short_sides.append(step)
-            self.blocks.append(grid[position])
-            self.positions.append(position)
-        end = origin + ((extent.magnitude - 1) * step)
-        #grid[end] = Block(TIP, self, short_sides=[Vector(step.y, step.x), -1 * Vector(step.y, step.x)])
 
-    def dirmost(self, dir):
-        return abs(max([position @ dir for position in self.positions]))
 
-    def grounded(self):
-        return self.dirmost(DOWN) == 1
-
-    def supported(self):
-        return not all([self.world[position + DOWN] == AIR for position in self.positions if position.y == self.dirmost(DOWN)])
-
-    def move(self, dir):
-        vacated = [position for position in self.positions]
-        self.positions = [position + dir for position in self.positions]
-        for _, position in enumerate(self.positions):
-            self.world[position] = self.blocks[_]
-        need_air = [
-            position for position in vacated if not position in self.positions]
-        for position in need_air:
-            self.world[position] = Block(AIR)
-
-    # recursive
-    def fall(self):
-        upper_neighbors = set([self.world[position + UP].slab for position in self.positions if position.y ==
-                               self.dirmost(UP) and self.world[position + UP].slab])
-
-        # drop this slab
-        if not self.supported():
-            self.move(DOWN)
-            for neighbor in upper_neighbors:
-                neighbor.fall()
-
-        if not self.supported():
-            for x in range(self.world.dim.x):
-                for y in range(self.world.dim.y):
-                    self.world[x, y] = SLAB
-            return
-
-    # the player has tried to move this slab
-    def slide(self, force):
-        if all([self.world[position + force] == AIR for position in self.positions if position.x == self.dirmost(force)]):
-            dropped = self.world[self.dirmost(-1 * force),
-                                 self.dirmost(UP) + 1].slab
-            self.move(force)
-            # if this slab sliding removed the support for another slab, apply gravity to that slab with potential recursive consequences
-            if dropped:
-                dropped.fall()
-            # apply gravity to self, which may also trigger a recursive collapse
-            fell = not self.supported()
-            self.fall()
-
-            return True, fell
-        return False, False
