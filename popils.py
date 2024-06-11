@@ -78,18 +78,17 @@ class Popils(Game):
     
     # SOLVE computes the popils-specific solving move sequence for the given 3SAT puzzle
     def solve(self):
-        sol = np.empty((0,2), dtype='int')
         if self.puzzle.solution:
             # make variable assignments
             for truthiness in self.puzzle.solution:
                 if truthiness == 1:
-                    sol = np.vstack([sol, UP])
-                sol = np.vstack([sol, np.tile(RIGHT, (2,1))])
+                    self.sol = np.vstack([self.sol, UP])
+                self.sol = np.vstack([self.sol, np.tile(RIGHT, (2,1))])
 
             # traverse level
             for clause in range(self.puzzle.num_clauses):
                 # climb ladder to enter clause
-                sol = np.vstack([sol, np.tile(UP, (3,1))])
+                self.sol = np.vstack([self.sol, np.tile(UP, (3,1))])
 
                 # find nearest viable ladder
                 satisfied = self.puzzle.satisfied_vars(
@@ -98,22 +97,22 @@ class Popils(Game):
                 lateral_blocks = 2 * (self.puzzle.num_vars + 1 - closest)
 
                 # move to nearest viable ladder
-                sol = np.vstack([sol, np.tile(LEFT, (lateral_blocks,1))])
+                self.sol = np.vstack([self.sol, np.tile(LEFT, (lateral_blocks,1))])
 
                 # climb to next clause
-                sol = np.vstack([sol, np.tile(UP, (2,1))])
+                self.sol = np.vstack([self.sol, np.tile(UP, (2,1))])
 
                 # go back to the main ladder
-                sol = np.vstack([sol, np.tile(RIGHT, (lateral_blocks,1))])
+                self.sol = np.vstack([self.sol, np.tile(RIGHT, (lateral_blocks,1))])
 
                 # get in position to traverse the next clause
-                sol = np.vstack([sol, UP])
+                self.sol = np.vstack([self.sol, UP])
 
             # climb to princess!
-            sol = np.vstack([sol, np.tile(UP, (3,1))])
+            self.sol = np.vstack([self.sol, np.tile(UP, (3,1))])
         else:
             print("INFO | Not running Popils solver because 3SAT was not solved.")
-        return sol
+        return self.sol
 
 ########################################################################################
 

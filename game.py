@@ -24,28 +24,9 @@ class Game(ABC):
         self.complete = False
         self.puzzle = puzzle
         self.reduce()  # build the grid
-        self.solution = self.solve()  # build the solution
+        self.sol = np.empty((0,2), dtype='int')
+        self.solve()  # build the solution
         self.solution_step = 0
 
     def __repr__(self):
         return repr(self.grid)
-
-
-# this class will populate the game grid
-class Block():
-    def __init__(self, type, slab=None, short_sides=None):
-        self.type = type
-        self.slab = slab
-        self.short_sides = short_sides
-
-    # TODO: this at least needs comments lol
-    def __setattr__(self, name, value):
-        if name == 'type':
-            self.identity = value
-            self.color = COLORS[self.identity]
-        else:
-            super().__setattr__(name, value)
-
-    def __getattr__(self, name):
-        if name == 'type':
-            return self.identity

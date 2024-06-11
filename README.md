@@ -57,7 +57,7 @@ p cnf num_vars num_clauses
 For example, the line `-1 4 5 0` is equivalent to the clause `(¬x1 V x4 V x5)`
 where `¬` is the logical negation symbol.
 
-## Resources
+## References
 * [3SAT Example Library](https://www.cs.ubc.ca/%7Ehoos/SATLIB/benchm.html)
 * [Megalit Reduction Concept](https://docs.google.com/spreadsheets/d/1xu297SNoUu8qFG4eRkkXsX5r0zjv5CCPZEqo3ZCrlRM/edit?usp=sharing)
 * [*Popils* Wiki Entry](https://en.wikipedia.org/wiki/Popils) 
@@ -65,57 +65,13 @@ where `¬` is the logical negation symbol.
 * [*Megalit* Wiki Entry](https://en.wikipedia.org/wiki/Megalit) 
 	/ [Megalit Gameplay](https://www.youtube.com/watch?v=2ccKBg8pZXk)
 
-## Papers for Reference
+## Related Papers
 * [Gaming is a hard job, but someone has to do it!](https://arxiv.org/abs/1201.4995)
 * [Classic Nintendo Games are (Computationally) Hard](https://arxiv.org/abs/1203.1895)
 * [Block Dude Puzzles are NP-Hard (and the Rugs Really Tie the Reductions Together)](https://www.researchgate.net/publication/352934749_Block_Dude_Puzzles_are_NP-Hard_and_the_Rugs_Really_Tie_the_Reductions_Together) 
-    * For in-progress drafts, see email from Aaron
 
-# (Non-exhaustive) TODO List
-* megalit
-    * reduction
-        * grip choice hysteresis
-        * allow superknight jumps
-        * fix the solver stub to manually fall
-        * solver stub takes antimonkeybusiness potholes into account
-        * solver stub needs fewer steps to pass under the towers
-        * slab graphical clarity improvements
-    * solver
-    * megalit demo fully functional
-* refactor code (comments and organization)
-    * I'm forgetting what the design pattern is called, but I believe artist
-        might be better as a draw function returned from a wrapper function
-        that first instantiates all the constants and pygame resources. keeping
-        this in its own module still seems desirable
-* add some dynamic controls (FPS/gamespeed, maybe a file/level selector)
-* write the actual paper (we need to start by skimming a few other papers that
-    do similar proofs. without seeing how others do it, the following would be
-    my approach to the structure). clarity is probably the most important
-    property to strive for. we also need sufficient rigor in the megalit
-    proof in particular
-    * abstract
-    * introduction
-        * background on the idea behind proving games are in NP via
-        reduction to level design (ie, what do we actually mean when
-        we say a game is NP-complete)
-    * applications of the metatheorem
-        * popils
-            * background of the game, which features we use
-            specifying the metatheorem gadgets
-        * megalit
-            * background of the game, what we assume is allowed (very long slabs, starting above the ground)
-            specifying the metatheorem gadgets (trickier than for popils because we need to include a discussion of why the player can't cheat)
-            the bulldozer cleanup phase
-    * metatheorem
-        3SAT expanded form
-        using gravity as the long range effect
-        generalized schematic proof using abstract gadgets
-    * other stuff (???)
-        references
-        conclusion
-        description of github project
-        possibilities for extension
-* polish the spreadsheet
-* skimming
-* port demo from PyGame (python3) to Pico-8 (Lua)
+# TODOs
+* I don't think the sim uses the updated var setter gadget
+* add speed setting for autosolve mode
+* port from PyGame (python3) to Pico-8 (Lua)
 * host game on Aaron's website
